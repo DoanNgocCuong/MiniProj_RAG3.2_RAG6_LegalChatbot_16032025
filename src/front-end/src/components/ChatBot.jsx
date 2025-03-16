@@ -13,27 +13,33 @@ function ChatBot(props) {
   let [promptInput, SetPromptInput] = useState("");
   let [sourceData, SetSourceData] = useState("RAG");
   let [chatHistory, SetChatHistory] = useState([]);
-
-  const commonQuestions=[
-    "Trình bày khái niệm, chế độ pháp lý vùng nội thủy theo UNCLOS 1982? Liên hệ vùng nội thủytheo luật biển Việt Nam?",
-    "Trình bày khái niệm, chế độ pháp lý vùng Lãnh hải theo UNCLOS 1982? Liên hệ vùng Lãnh hải, luật biển Việt Nam?",
-    "Trình bày khái niệm, chế độ pháp lý vùng Đặc quyền kinh tế theo UNCLOS 1982? Liên hệ vùng ĐQKT luật biển Việt Nam?", 
-    "Trình bày khái niệm, chế độ pháp lý Thềm lục địa theo UNCLOS 1982? Liên hệ Thềm lục địa luật biển Việt Nam?",
-    "Trình bày quy định về thềm lục địa mở rộng theo UNCLOS1982? Việc tranh chấp được quy định như thế nào? Liên hệ Việt Nam?",
-    "Đồng chí Trình bày khái niệm, chế độ pháp lý biển theo UNCLOS 1982?",
-    "Trình bày Quyền hạn và nghĩa vụ của nước trung lập và Tàu thuyền bên tham chiến ở vùng biển nước trung lập theo Luật chiến tranh trên biển?",
-  ]
   let [isLoading, SetIsLoad] = useState(false);
   let [isGen, SetIsGen] = useState(false);
   const [dataChat, SetDataChat] = useState([
     [
       "start",
       [
-        "Xin chào! Đây là RAG Chatbot, trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì? Đừng quên chọn nguồn tham khảo phù hợp để mình có thể giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
+        "Xin chào! Đây là RAG Chatbot, hệ thống truy vấn thông tin Luật biển Việt Nam và Quy tắc tránh va quốc tế trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì, để mình giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
         null,
       ],
     ],
   ]);
+  const [isDarkMode, setIsDarkMode] = useState(
+    document.documentElement.getAttribute('data-theme') === 'dark'
+  );
+  const [chatSessions, setChatSessions] = useState([
+    { id: 'current', title: 'Cuộc trò chuyện hiện tại', messages: [] },
+    { id: 'past1', title: 'Luật biển quốc tế', messages: [] },
+    { id: 'past2', title: 'Quy định vùng đặc quyền kinh tế', messages: [] },
+  ]);
+  const [activeChatId, setActiveChatId] = useState('current');
+
+  const commonQuestions = [
+    "Trình bày khái niệm, chế độ pháp lý vùng nội thủy theo UNCLOS 1982? Liên hệ vùng nội thủy theo luật biển Việt Nam?",
+    "Trình bày những quy định cấm trong vùng đặc quyền kinh tế, thềm lục địa và quyền truy đuổi tàu thuyền nước ngoài theo luật biển Việt Nam?",
+    "Trình bày khái niệm, chế độ pháp lý biển theo UNCLOS 1982?",
+  ];
+
   useEffect(() => {
     ScrollToEndChat();
   }, [isLoading]);
@@ -42,6 +48,26 @@ function ChatBot(props) {
       SetTimeOfRequest((timeOfRequest) => timeOfRequest + 1);
     }, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.getAttribute('data-theme') === 'dark');
+    };
+    
+    checkTheme();
+    
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        if (mutation.attributeName === 'data-theme') {
+          checkTheme();
+        }
+      });
+    });
+    
+    observer.observe(document.documentElement, { attributes: true });
+    
+    return () => observer.disconnect();
   }, []);
 
   function ScrollToEndChat() {
@@ -135,251 +161,212 @@ function ChatBot(props) {
   const handleReferenceClick = (sources, sourceType) => {
     SetReference({
       title:
-        sourceType == "wiki"
-          ? sources.metadata.title
-          : sources.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " + sources.metadata.page + " (sổ tay SV)",
-      source: sourceType == "wiki" ? "Wikipedia" : "Trường Cao Đẳng Kỹ thuật Hải Quân",
-      url:
-        sourceType == "wiki"
-          ? sources.metadata.source
-          : "https://ctsv.ntt.edu.vn/sinh-vien-can-biet/",
-      text:
-        sourceType == "wiki" ? sources.metadata.summary : sources.page_content,
+        sources.metadata.page==undefined ? "Sổ tay luật pháp" : "Trang " + sources.metadata.page + " (Luật)",
+      source: "RAG Database",
+      url: "https://example.com/legal-reference",
+      text: sources.page_content,
     });
   };
+
+  // Function to start new chat
+  const startNewChat = () => {
+    // Create new chat session
+    const newSession = {
+      id: 'chat_' + Date.now(),
+      title: 'Cuộc trò chuyện mới',
+      messages: []
+    };
+    
+    // Add to beginning of chat sessions
+    setChatSessions([newSession, ...chatSessions]);
+    setActiveChatId(newSession.id);
+    
+    // Reset chat state
+    SetDataChat([
+      [
+        "start",
+        [
+          "Xin chào! Đây là RAG Chatbot, trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì?",
+          null,
+        ],
+      ],
+    ]);
+    SetPromptInput("");
+  };
+
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-100 h-[85vh] ">
-      <div className="hidden lg:block  drawer-side absolute w-64 h-[20vh] left-3 mt-2 drop-shadow-md">
-        <div className="menu p-4 w-full min-h-full bg-gray-50 text-base-content rounded-2xl mt-3  overflow-auto scroll-y-auto max-h-[80vh]">
-          {/* Sidebar content here */}
-          <ul className="menu text-sm">
-            <h2 className="font-bold mb-2 bg-[linear-gradient(90deg,hsl(var(--s))_0%,hsl(var(--sf))_9%,hsl(var(--pf))_42%,hsl(var(--p))_47%,hsl(var(--a))_100%)] bg-clip-text will-change-auto [-webkit-text-fill-color:transparent] [transform:translate3d(0,0,0)] motion-reduce:!tracking-normal max-[1280px]:!tracking-normal [@supports(color:oklch(0_0_0))]:bg-[linear-gradient(90deg,hsl(var(--s))_4%,color-mix(in_oklch,hsl(var(--sf)),hsl(var(--pf)))_22%,hsl(var(--p))_45%,color-mix(in_oklch,hsl(var(--p)),hsl(var(--a)))_67%,hsl(var(--a))_100.2%)] ">
-              Lịch sử trò chuyện
-            </h2>
-            {chatHistory.length == 0 ? (
-              <p className="text-sm text-gray-500">
-                Hiện chưa có cuộc hội thoại nào
-              </p>
-            ) : (
-              ""
-            )}
-            {chatHistory.map((mess, i) => (
-              <li key={i}>
-                <p>
-                  <FontAwesomeIcon icon={faMessage} />
-                  {mess.length < 20 ? mess : mess.slice(0, 20) + "..."}
-                </p>
-              </li>
+    <div className={`flex justify-center min-h-[85vh] h-auto w-full ${isDarkMode ? 'bg-gradient-to-br from-gray-900 to-blue-900' : 'bg-gradient-to-br from-blue-100 to-indigo-200'}`}>
+      <div className="w-full flex gap-0">
+        <div className={`hidden md:block w-1/5 bg-base-100 shadow-xl rounded-lg p-3 ${isDarkMode ? 'text-gray-200' : ''}`}>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Lịch sử chat</h2>
+            <button 
+              onClick={startNewChat}
+              className="btn btn-sm btn-circle btn-primary"
+              title="Tạo cuộc trò chuyện mới"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
+          
+          <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-4">
+            {chatSessions.map(chat => (
+              <div 
+                key={chat.id}
+                onClick={() => setActiveChatId(chat.id)}
+                className={`p-2 rounded-md cursor-pointer flex items-center gap-2 ${
+                  activeChatId === chat.id 
+                    ? (isDarkMode ? 'bg-blue-900' : 'bg-blue-100') 
+                    : (isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100')
+                }`}
+              >
+                <FontAwesomeIcon icon={faMessage} className="text-blue-500" />
+                <div className="truncate">{chat.title}</div>
+              </div>
             ))}
-          </ul>
-        </div>
-      </div>
-      <div className="hidden lg:block  drawer-side absolute w-64 h-[20vh] mt-2 right-3 drop-shadow-md">
-        <div className="menu p-4 w-full min-h-full bg-gray-50 text-base-content rounded-2xl mt-3">
-          {/* Sidebar content here */}
-          <h2 className="font-bold text-sm mb-2 bg-[linear-gradient(90deg,hsl(var(--s))_0%,hsl(var(--sf))_9%,hsl(var(--pf))_42%,hsl(var(--p))_47%,hsl(var(--a))_100%)] bg-clip-text will-change-auto [-webkit-text-fill-color:transparent] [transform:translate3d(0,0,0)] motion-reduce:!tracking-normal max-[1280px]:!tracking-normal [@supports(color:oklch(0_0_0))]:bg-[linear-gradient(90deg,hsl(var(--s))_4%,color-mix(in_oklch,hsl(var(--sf)),hsl(var(--pf)))_22%,hsl(var(--p))_45%,color-mix(in_oklch,hsl(var(--p)),hsl(var(--a)))_67%,hsl(var(--a))_100.2%)] ">
-            Nguồn tham khảo
-          </h2>
-          <ul className="menu">
-            <li>
-              <label className="label cursor-pointer">
-                <span className="label-text font-medium">
-                  Bách khoa toàn thư Wikipedia
-                </span>
-                <input
-                  type="radio"
-                  name="radio-10"
-                  value={"wiki"}
-                  checked={sourceData === "wiki"}
-                  onChange={(e) => {
-                    SetSourceData(e.target.value);
+          </div>
+          
+          {/* Reference questions section */}
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-3">Câu hỏi tham khảo</h2>
+            <div className="space-y-2 max-h-[30vh] overflow-y-auto">
+              {commonQuestions.map((question, index) => (
+                <div 
+                  key={index}
+                  onClick={() => {
+                    SetPromptInput(question);
+                    // Optional: auto-send the question
+                    // setTimeout(() => SendMessageChat(), 100);
                   }}
-                  className="radio checked:bg-blue-500"
-                />
-              </label>
-            </li>
-            <li>
-              <label className="label cursor-pointer">
-                <span className="label-text font-medium">
-                  Trường Cao Đẳng Kỹ thuật Hải Quân
-                </span>
-                <input
-                  value={"RAG"}
-                  type="radio"
-                  checked={sourceData === "RAG"}
-                  onChange={(e) => {
-                    SetSourceData(e.target.value);
-                  }}
-                  name="radio-10"
-                  className="radio checked:bg-blue-500"
-                />
-              </label>
-            </li>
-          </ul>
-        </div>
-        <div
-          className="menu p-4 w-full min-h-full bg-gray-50 text-base-content 
-        rounded-2xl mt-3  overflow-auto scroll-y-auto max-h-[43vh]
-        scrollbar-thin scrollbar-thumb-gray-300 
-          scrollbar-thumb-rounded-full scrollbar-track-rounded-full
-        "
-        >
-          {/* Sidebar content here */}
-          <ul className="menu text-sm">
-            <h2 className="font-bold mb-2 bg-[linear-gradient(90deg,hsl(var(--s))_0%,hsl(var(--sf))_9%,hsl(var(--pf))_42%,hsl(var(--p))_47%,hsl(var(--a))_100%)] bg-clip-text will-change-auto [-webkit-text-fill-color:transparent] [transform:translate3d(0,0,0)] motion-reduce:!tracking-normal max-[1280px]:!tracking-normal [@supports(color:oklch(0_0_0))]:bg-[linear-gradient(90deg,hsl(var(--s))_4%,color-mix(in_oklch,hsl(var(--sf)),hsl(var(--pf)))_22%,hsl(var(--p))_45%,color-mix(in_oklch,hsl(var(--p)),hsl(var(--a)))_67%,hsl(var(--a))_100.2%)] ">
-              Những câu hỏi phổ biến
-            </h2>
-
-            {commonQuestions.map((mess, i) => (
-              <li key={i} onClick={() => SetPromptInput(mess)}>
-                <p className="max-w-64">
-                  <FontAwesomeIcon icon={faMessage} />
-                  {mess}
-                  {/* {mess.length < 20 ? mess : mess.slice(0, 20) + "..."} */}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className={"flex justify-center h-[80vh]"}>
-        {/* Put this part before </body> tag */}
-        <input type="checkbox" id="my_modal_6" className="modal-toggle" />
-        <div className="modal">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">{reference.title}</h3>{" "}
-            <p className="font-normal text-sm">Nguồn: {reference.source}</p>
-            <p className="py-4 text-sm">
-              {reference.text.slice(0, 700) + "..."}
-            </p>
-            <p className="link link-primary truncate">
-              <a href={reference.url} target="_blank">
-                {reference.url}
-              </a>
-            </p>
-            <div className="modal-action">
-              <label htmlFor="my_modal_6" className="btn btn-error">
-                ĐÓNG
-              </label>
+                  className={`p-2 rounded-md cursor-pointer text-sm ${
+                    isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'
+                  }`}
+                >
+                  {question.length > 80 ? question.substring(0, 80) + '...' : question}
+                </div>
+              ))}
             </div>
           </div>
         </div>
-
-        <div
-          id="chat-area"
-          className="
-          mt-5 text-sm 
-          scrollbar-thin scrollbar-thumb-gray-300 bg-white  
-          scrollbar-thumb-rounded-full scrollbar-track-rounded-full
-          rounded-3xl border-2 md:w-[50%] md:p-3 p-1  w-full overflow-auto scroll-y-auto h-[80%] "
-        >
-          {dataChat.map((dataMessages, i) =>
-            dataMessages[0] === "start" ? (
-              <div className="chat chat-start drop-shadow-md" key={i}>
-                <div className="chat-image avatar">
-                  <div className="w-10 rounded-full border-2 border-blue-500">
-                    <img className="scale-150" src={robot_img} />
+      
+        <div className="w-full md:w-4/5 bg-base-100 shadow-xl rounded-lg flex flex-col justify-between relative">
+          <div className="flex items-center justify-between p-2 border-b">
+            <h1 className="text-xl font-semibold">
+              <FontAwesomeIcon icon={faMessage} className="mr-2" />
+              Trò chuyện với RAG Chatbot
+            </h1>
+            
+            {/* Mobile: Show chat history button */}
+            <button className="md:hidden btn btn-sm btn-circle" onClick={() => document.getElementById('history-drawer').checked = true}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Chat messages area */}
+          <div className="chat-container flex-1 overflow-y-auto p-2 max-h-[75vh] scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-100">
+            {dataChat.map((dataMessages, i) =>
+              dataMessages[0] === "start" ? (
+                <div className="chat chat-start" key={i}>
+                  <div className="chat-image avatar">
+                    <div className="w-10 rounded-full border-2 border-blue-500">
+                      <img src={robot_img} />
+                    </div>
+                  </div>
+                  <div className={`chat-bubble ${isDarkMode ? 'bg-blue-900 text-white' : 'chat-bubble-info'}`}>
+                    <TypeAnimation
+                      style={{ whiteSpace: 'pre-line' }} 
+                      sequence={[
+                        dataMessages[1][0]
+                        
+                        ,
+                        () => SetIsGen(false),
+                      ]}
+                      cursor={false}
+                      speed={100}
+                    />
+                    {dataMessages[1][1] === null ||
+                    dataMessages[1][1].length == 0 ? (
+                      ""
+                    ) : (
+                      <>
+                        <div className="divider m-0"></div>
+                        <p className={`font-semibold text-xs ${isDarkMode ? 'text-gray-300' : ''}`}>
+                          Tham khảo:{" "}
+                          {dataMessages[1][1].map((source, j) => (
+                            <label
+                              htmlFor="my_modal_6"
+                              className={`kbd kbd-xs mr-1 hover:bg-sky-300 cursor-pointer ${isDarkMode ? 'text-gray-300' : ''}`}
+                              onClick={() =>
+                                handleReferenceClick(source, dataMessages[1][2])
+                              }
+                              key={j}
+                            >
+                              {dataMessages[1][2] == "wiki"
+                                ? source.metadata.title
+                                : source.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " +
+                                  source.metadata.page +
+                                  " (sổ tay SV)"}
+                            </label>
+                          ))}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="chat-bubble chat-bubble-info colo break-words ">
-                  <TypeAnimation
-                    style={{ whiteSpace: 'pre-line' }} 
-                    sequence={[
-                      // () => ScrollToEndChat(),
-                      dataMessages[1][0]
-                      
-                      ,
-                      () => SetIsGen(false),
-                      // SetIsLoad(false),
-                      // .replace("\n\n", "")
-                      // .split("\n")
-                      // .map((item, key) => {
-                      //   return (
-                      //     <>
-                      //       {item.replace(/ /g, "\u00A0")}
-                      //       <br />
-                      //     </>
-                      //   );
-                      // })
-                    ]}
-                    cursor={false}
-                    // wrapper="span"
-                    speed={100}
+              ) : (
+                <div className="chat chat-end" key={i}>
+                  <div className={`chat-bubble shadow-xl ${
+                    isDarkMode 
+                      ? 'bg-gradient-to-r from-purple-900 to-blue-900 text-white' 
+                      : 'chat-bubble-primary bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                  }`}>
+                    {dataMessages[1][0]}
+                    <p className={`font-light text-xs ${isDarkMode ? 'text-gray-300' : 'text-cyan-50'}`}>
+                      Tham khảo: RAG
+                    </p>
+                  </div>
+                </div>
+              )
+            )}
+            {isLoading ? (
+              <div className="chat chat-start">
+                <div className="chat-image avatar">
+                  <div className="w-10 rounded-full border-2 border-blue-500">
+                    <img src={robot_img} />
+                  </div>
+                </div>
+                <div className="chat-bubble chat-bubble-info">
+                  <ScaleLoader
+                    color="#000000"
+                    loading={true}
+                    height={10}
+                    width={10}
+                    aria-label="Loading Spinner"
+                    data-testid="loader"
                   />
-                  {dataMessages[1][1] === null ||
-                  dataMessages[1][1].length == 0 ? (
-                    ""
-                  ) : (
-                    <>
-                      <div className="divider m-0"></div>
-                      <p className="font-semibold text-xs">
-                        Tham khảo:{" "}
-                        {dataMessages[1][1].map((source, j) => (
-                          <label
-                            htmlFor="my_modal_6"
-                            className="kbd kbd-xs mr-1 hover:bg-sky-300 cursor-pointer"
-                            onClick={() =>
-                              handleReferenceClick(source, dataMessages[1][2])
-                            }
-                            key={j}
-                          >
-                            {dataMessages[1][2] == "wiki"
-                              ? source.metadata.title
-                              : source.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " +
-                                source.metadata.page +
-                                " (sổ tay SV)"}
-                          </label>
-                        ))}
-                      </p>
-                    </>
-                  )}
+                  <p className="text-xs font-medium">{timeOfRequest + "/60s"}</p>
                 </div>
               </div>
             ) : (
-              <div className="chat chat-end">
-                {/* bg-gradient-to-r from-cyan-500 to-blue-500 */}
-                <div className="chat-bubble shadow-xl chat-bubble-primary bg-gradient-to-r from-purple-500 to-blue-500 text-white">
-                  {dataMessages[1][0]}
-                  <>
-                    <div className="divider m-0"></div>
-                    <p className="font-light text-xs text-cyan-50">
-                      Tham khảo:{" "}
-                      {dataMessages[1][1] == "wiki" ? "Wikipedia" : "RAG"}
-                    </p>
-                  </>
-                </div>
-              </div>
-            )
-          )}
-          {isLoading ? (
-            <div className="chat chat-start">
-              <div className="chat-image avatar">
-                <div className="w-10 rounded-full border-2 border-blue-500">
-                  <img src={robot_img} />
-                </div>
-              </div>
-              <div className="chat-bubble chat-bubble-info">
-                <ScaleLoader
-                  color="#000000"
-                  loading={true}
-                  height={10}
-                  width={10}
-                  aria-label="Loading Spinner"
-                  data-testid="loader"
-                />
-                <p className="text-xs font-medium">{timeOfRequest + "/60s"}</p>
-              </div>
-            </div>
-          ) : (
-            ""
-          )}
-          <div ref={messagesEndRef} />
-          <div className="absolute bottom-[0.2rem] md:w-[50%] grid ">
+              ""
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+          
+          {/* Chat input area - fixing width and positioning */}
+          <div className="absolute bottom-[0.2rem] left-0 right-0 w-full px-4 grid grid-cols-12 gap-1">
             <input
               type="text"
               placeholder="Nhập câu hỏi tại đây..."
-              className="mr-1 shadow-xl border-2 focus:outline-none px-2 rounded-2xl input-primary col-start-1 md:col-end-12 col-end-11 "
+              className={`shadow-xl border-2 focus:outline-none px-2 py-3 rounded-2xl ${
+                isDarkMode 
+                  ? 'bg-gray-800 text-white border-blue-700' 
+                  : 'input-primary'
+              } col-span-11`}
               onChange={onChangeHandler}
               onKeyDown={handleKeyDown}
               disabled={isGen}
@@ -390,7 +377,7 @@ function ChatBot(props) {
               disabled={isGen}
               onClick={() => SendMessageChat()}
               className={
-                " drop-shadow-md md:col-start-12 rounded-2xl col-start-11 col-end-12 md:col-end-13 btn btn-active btn-primary btn-square bg-gradient-to-tl from-transparent via-blue-600 to-indigo-500"
+                "drop-shadow-md rounded-2xl col-span-1 btn btn-active btn-primary btn-square bg-gradient-to-tl from-transparent via-blue-600 to-indigo-500"
               }
             >
               <svg
@@ -407,10 +394,75 @@ function ChatBot(props) {
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
               </svg>
             </button>
-            <p className=" text-xs col-start-1 col-end-12 text-justify p-1">
-              <b>Lưu ý: </b>Mô hình có thể đưa ra câu trả lời không chính xác ở
+            <p className={`text-xs col-span-12 text-justify p-1 ${isDarkMode ? 'text-gray-300' : ''}`}>
+              <b>Lưu ý:</b> Mô hình có thể đưa ra câu trả lời không chính xác ở
               một số trường hợp, vì vậy hãy luôn kiểm chứng thông tin bạn nhé!
             </p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile: Chat history drawer */}
+      <div className="drawer drawer-end md:hidden">
+        <input id="history-drawer" type="checkbox" className="drawer-toggle" />
+        <div className="drawer-side z-10">
+          <label htmlFor="history-drawer" className="drawer-overlay"></label>
+          <div className={`p-4 w-80 min-h-full ${isDarkMode ? 'bg-gray-900 text-gray-200' : 'bg-base-200'}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Lịch sử chat</h2>
+              <button 
+                onClick={startNewChat}
+                className="btn btn-sm btn-circle btn-primary"
+                title="Tạo cuộc trò chuyện mới"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-2 max-h-[30vh] overflow-y-auto mb-6">
+              {chatSessions.map(chat => (
+                <div 
+                  key={chat.id}
+                  onClick={() => {
+                    setActiveChatId(chat.id);
+                    document.getElementById('history-drawer').checked = false;
+                  }}
+                  className={`p-2 rounded-md cursor-pointer flex items-center gap-2 ${
+                    activeChatId === chat.id 
+                      ? (isDarkMode ? 'bg-blue-900' : 'bg-blue-100') 
+                      : (isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100')
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faMessage} className="text-blue-500" />
+                  <div className="truncate">{chat.title}</div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Mobile reference questions */}
+            <div className="mt-4">
+              <h2 className="text-lg font-semibold mb-3">Câu hỏi tham khảo</h2>
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+                {commonQuestions.map((question, index) => (
+                  <div 
+                    key={index}
+                    onClick={() => {
+                      SetPromptInput(question);
+                      document.getElementById('history-drawer').checked = false;
+                      // Optional: auto-send the question
+                      // setTimeout(() => SendMessageChat(), 100);
+                    }}
+                    className={`p-2 rounded-md cursor-pointer text-sm ${
+                      isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    {question.length > 60 ? question.substring(0, 60) + '...' : question}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

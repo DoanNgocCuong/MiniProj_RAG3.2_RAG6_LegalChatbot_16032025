@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/ic.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RAG Chatbot</title>
+    <script>
+      // Check for saved theme preference or use the system preference
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } else {
+        // Check for dark mode preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (prefersDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
