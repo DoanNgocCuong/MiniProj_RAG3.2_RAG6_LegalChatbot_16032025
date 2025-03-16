@@ -3,7 +3,7 @@ Support Project Graduation for 1 friend.  RAG on Legal Docs in vietnamese - xài
 
 # Changelog
 
-## [v1.1] - 2025-03-16
+## [v1.1] - 2025-03-16 - Từ 17h đến 23h30 = 6h30
 
 ### Added
 - Integrated OpenWebUI and RAG3NTTU_RAG into a unified system
