@@ -1,6 +1,9 @@
 # Use Node.js as the base image
 FROM node:18-alpine as build
 
+# Install networking tools
+RUN apk add --no-cache curl iputils wget
+
 # Set working directory
 WORKDIR /app
 
@@ -18,6 +21,9 @@ RUN npm run build
 
 # Production stage
 FROM nginx:alpine
+
+# Install networking tools in production image
+RUN apk add --no-cache curl iputils wget
 
 # Copy built files from build stage to nginx
 COPY --from=build /app/dist /usr/share/nginx/html
