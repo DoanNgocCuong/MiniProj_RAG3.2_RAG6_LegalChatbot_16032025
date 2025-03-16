@@ -19,3 +19,5 @@ Support Project Graduation for 1 friend.  RAG on Legal Docs in vietnamese - xài
 
 ![HomePage](note/ver1_HomePage.png)
 ![UIChat](note/ver1_UIChatPage.png)
+
+Link Demo: https://youtu.be/ZOTE_l9lsNI 
