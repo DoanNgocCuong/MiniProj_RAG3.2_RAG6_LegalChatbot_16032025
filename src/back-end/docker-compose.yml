@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: legal-rag-backend:latest
     container_name: legal-rag-backend
     ports:
       - "30000:30000"
