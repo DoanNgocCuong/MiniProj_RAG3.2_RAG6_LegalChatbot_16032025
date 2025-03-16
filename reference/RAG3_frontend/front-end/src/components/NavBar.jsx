@@ -3,13 +3,13 @@ function NavBar() {
   const navigate = useNavigate ();
   const location = useLocation();
   return (
-    <div className="navbar bg-base-100 w-[95%] ">
+    <div className="navbar bg-apple-white shadow-sm w-full px-4 md:px-8">
       <div className="navbar-start">
         <div className="dropdown">
           <label tabIndex={0} className="btn btn-ghost lg:hidden">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-5 w-5 text-apple-black"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -24,47 +24,79 @@ function NavBar() {
           </label>
           <ul
             tabIndex={0}
-            className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+            className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-apple-white rounded-xl w-52"
           >
             <li>
-              <Link to="/">
-                <a>Trang chủ</a>
+              <Link to="/" className="text-apple-black font-medium py-2">
+                Trang chủ
               </Link>
             </li>
             <li>
-              <Link to="/chat">
-                <a>Trò chuyện</a>
+              <Link to="/chat" className="text-apple-black font-medium py-2">
+                Trò chuyện
               </Link>
             </li>
             <li>
-              <Link to="/faq">
-              <a>FAQs</a>
+              <Link to="/faq" className="text-apple-black font-medium py-2">
+                FAQs
               </Link>
             </li>
             <li>
-              <Link to="/issue">
-              <a>Báo lỗi/ Góp ý</a>
+              <Link to="/issue" className="text-apple-black font-medium py-2">
+                Báo lỗi/ Góp ý
               </Link>
             </li>
           </ul>
         </div>
-        <a  onClick={()=>navigate("/")}  className="btn btn-ghost normal-case font-extrabold text-xl bg-[linear-gradient(90deg,hsl(var(--s))_0%,hsl(var(--sf))_9%,hsl(var(--pf))_42%,hsl(var(--p))_47%,hsl(var(--a))_100%)] bg-clip-text will-change-auto [-webkit-text-fill-color:transparent] [transform:translate3d(0,0,0)] motion-reduce:!tracking-normal max-[1280px]:!tracking-normal [@supports(color:oklch(0_0_0))]:bg-[linear-gradient(90deg,hsl(var(--s))_4%,color-mix(in_oklch,hsl(var(--sf)),hsl(var(--pf)))_22%,hsl(var(--p))_45%,color-mix(in_oklch,hsl(var(--p)),hsl(var(--a)))_67%,hsl(var(--a))_100.2%)]">
-        NTTU Chatbot
+        <a onClick={()=>navigate("/")} className="btn btn-ghost normal-case font-bold text-xl text-apple-blue">
+          Naval Technical College Chatbot
         </a>
       </div>
       <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1 font-semibold ">
+        <ul className="menu menu-horizontal px-1 font-medium">
           <li className='p-1'>
-              <button onClick={()=>navigate("/")} className={location.pathname=="/"?"btn btn-outline btn-primary":""}>Trang chủ</button>
+            <button 
+              onClick={()=>navigate("/")} 
+              className={location.pathname=="/"
+                ? "px-4 py-2 text-apple-blue border-b-2 border-apple-blue"
+                : "px-4 py-2 text-apple-black hover:text-apple-blue transition-colors"
+              }
+            >
+              Trang chủ
+            </button>
           </li>
           <li className='p-1'>
-              <button onClick={()=>navigate("/chat")} className={location.pathname=="/chat"?"btn btn-outline btn-primary":""}>Trò chuyện</button>
+            <button 
+              onClick={()=>navigate("/chat")} 
+              className={location.pathname=="/chat"
+                ? "px-4 py-2 text-apple-blue border-b-2 border-apple-blue"
+                : "px-4 py-2 text-apple-black hover:text-apple-blue transition-colors"
+              }
+            >
+              Trò chuyện
+            </button>
           </li>
           <li className='p-1'>
-              <button onClick={()=>navigate("/faq")} className={location.pathname=="/faq"?"btn btn-outline btn-primary":""}>FAQs</button>
+            <button 
+              onClick={()=>navigate("/faq")} 
+              className={location.pathname=="/faq"
+                ? "px-4 py-2 text-apple-blue border-b-2 border-apple-blue"
+                : "px-4 py-2 text-apple-black hover:text-apple-blue transition-colors"
+              }
+            >
+              FAQs
+            </button>
           </li>
           <li className='p-1'>
-              <button onClick={()=>navigate("/issue")} className={location.pathname=="/issue"?"btn btn-outline btn-primary":""}>Báo lỗi/ Góp ý</button>
+            <button 
+              onClick={()=>navigate("/issue")} 
+              className={location.pathname=="/issue"
+                ? "px-4 py-2 text-apple-blue border-b-2 border-apple-blue"
+                : "px-4 py-2 text-apple-black hover:text-apple-blue transition-colors"
+              }
+            >
+              Báo lỗi/ Góp ý
+            </button>
           </li>
         </ul>
       </div>

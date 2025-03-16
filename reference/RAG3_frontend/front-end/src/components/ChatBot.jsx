@@ -32,7 +32,7 @@ function ChatBot(props) {
     [
       "start",
       [
-        "Xin chào! Đây là NTTU Chatbot, trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì? Đừng quên chọn nguồn tham khảo phù hợp để mình có thể giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
+        "Xin chào! Đây là Naval Technical College Chatbot, trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì? Đừng quên chọn nguồn tham khảo phù hợp để mình có thể giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
         null,
       ],
     ],
@@ -106,7 +106,7 @@ function ChatBot(props) {
         sourceType == "wiki"
           ? sources.metadata.title
           : sources.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " + sources.metadata.page + " (sổ tay SV)",
-      source: sourceType == "wiki" ? "Wikipedia" : "Đại học Nguyễn Tất Thành",
+      source: sourceType == "wiki" ? "Wikipedia" : "Trường Cao Đẳng Kỹ thuật Hải Quân",
       url:
         sourceType == "wiki"
           ? sources.metadata.source
@@ -116,16 +116,16 @@ function ChatBot(props) {
     });
   };
   return (
-    <div className="bg-gradient-to-r from-blue-50 to-purple-100 h-[85vh] ">
-      <div className="hidden lg:block  drawer-side absolute w-64 h-[20vh] left-3 mt-2 drop-shadow-md">
-        <div className="menu p-4 w-full min-h-full bg-gray-50 text-base-content rounded-2xl mt-3  overflow-auto scroll-y-auto max-h-[80vh]">
+    <div className="bg-apple-lightgray h-[85vh]">
+      <div className="hidden lg:block drawer-side absolute w-64 h-[20vh] left-3 mt-2">
+        <div className="menu p-4 w-full min-h-full bg-white text-base-content rounded-2xl mt-3 overflow-auto scroll-y-auto max-h-[80vh] shadow-sm">
           {/* Sidebar content here */}
           <ul className="menu text-sm">
-            <h2 className="font-bold mb-2 bg-[linear-gradient(90deg,hsl(var(--s))_0%,hsl(var(--sf))_9%,hsl(var(--pf))_42%,hsl(var(--p))_47%,hsl(var(--a))_100%)] bg-clip-text will-change-auto [-webkit-text-fill-color:transparent] [transform:translate3d(0,0,0)] motion-reduce:!tracking-normal max-[1280px]:!tracking-normal [@supports(color:oklch(0_0_0))]:bg-[linear-gradient(90deg,hsl(var(--s))_4%,color-mix(in_oklch,hsl(var(--sf)),hsl(var(--pf)))_22%,hsl(var(--p))_45%,color-mix(in_oklch,hsl(var(--p)),hsl(var(--a)))_67%,hsl(var(--a))_100.2%)] ">
+            <h2 className="font-bold mb-4 text-apple-blue">
               Lịch sử trò chuyện
             </h2>
             {chatHistory.length == 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-apple-gray">
                 Hiện chưa có cuộc hội thoại nào
               </p>
             ) : (
@@ -133,8 +133,8 @@ function ChatBot(props) {
             )}
             {chatHistory.map((mess, i) => (
               <li key={i}>
-                <p>
-                  <FontAwesomeIcon icon={faMessage} />
+                <p className="py-2 text-apple-black hover:text-apple-blue transition-colors">
+                  <FontAwesomeIcon icon={faMessage} className="mr-2" />
                   {mess.length < 20 ? mess : mess.slice(0, 20) + "..."}
                 </p>
               </li>
@@ -142,16 +142,17 @@ function ChatBot(props) {
           </ul>
         </div>
       </div>
-      <div className="hidden lg:block  drawer-side absolute w-64 h-[20vh] mt-2 right-3 drop-shadow-md">
-        <div className="menu p-4 w-full min-h-full bg-gray-50 text-base-content rounded-2xl mt-3">
+      
+      <div className="hidden lg:block drawer-side absolute w-64 h-[20vh] mt-2 right-3">
+        <div className="menu p-4 w-full min-h-full bg-white text-base-content rounded-2xl mt-3 shadow-sm">
           {/* Sidebar content here */}
-          <h2 className="font-bold text-sm mb-2 bg-[linear-gradient(90deg,hsl(var(--s))_0%,hsl(var(--sf))_9%,hsl(var(--pf))_42%,hsl(var(--p))_47%,hsl(var(--a))_100%)] bg-clip-text will-change-auto [-webkit-text-fill-color:transparent] [transform:translate3d(0,0,0)] motion-reduce:!tracking-normal max-[1280px]:!tracking-normal [@supports(color:oklch(0_0_0))]:bg-[linear-gradient(90deg,hsl(var(--s))_4%,color-mix(in_oklch,hsl(var(--sf)),hsl(var(--pf)))_22%,hsl(var(--p))_45%,color-mix(in_oklch,hsl(var(--p)),hsl(var(--a)))_67%,hsl(var(--a))_100.2%)] ">
+          <h2 className="font-bold text-sm mb-4 text-apple-blue">
             Nguồn tham khảo
           </h2>
           <ul className="menu">
             <li>
               <label className="label cursor-pointer">
-                <span className="label-text font-medium">
+                <span className="label-text font-medium text-apple-black">
                   Bách khoa toàn thư Wikipedia
                 </span>
                 <input
@@ -162,14 +163,14 @@ function ChatBot(props) {
                   onChange={(e) => {
                     SetSourceData(e.target.value);
                   }}
-                  className="radio checked:bg-blue-500"
+                  className="radio checked:bg-apple-blue"
                 />
               </label>
             </li>
             <li>
               <label className="label cursor-pointer">
-                <span className="label-text font-medium">
-                  Đại học Nguyễn Tất Thành
+                <span className="label-text font-medium text-apple-black">
+                  Trường Cao Đẳng Kỹ thuật Hải Quân
                 </span>
                 <input
                   value={"nttu"}
@@ -179,31 +180,30 @@ function ChatBot(props) {
                     SetSourceData(e.target.value);
                   }}
                   name="radio-10"
-                  className="radio checked:bg-blue-500"
+                  className="radio checked:bg-apple-blue"
                 />
               </label>
             </li>
           </ul>
         </div>
+        
         <div
-          className="menu p-4 w-full min-h-full bg-gray-50 text-base-content 
-        rounded-2xl mt-3  overflow-auto scroll-y-auto max-h-[43vh]
-        scrollbar-thin scrollbar-thumb-gray-300 
-          scrollbar-thumb-rounded-full scrollbar-track-rounded-full
-        "
+          className="menu p-4 w-full min-h-full bg-white text-base-content 
+          rounded-2xl mt-3 overflow-auto scroll-y-auto max-h-[43vh]
+          scrollbar-thin scrollbar-thumb-apple-gray 
+          scrollbar-thumb-rounded-full scrollbar-track-rounded-full shadow-sm"
         >
           {/* Sidebar content here */}
           <ul className="menu text-sm">
-            <h2 className="font-bold mb-2 bg-[linear-gradient(90deg,hsl(var(--s))_0%,hsl(var(--sf))_9%,hsl(var(--pf))_42%,hsl(var(--p))_47%,hsl(var(--a))_100%)] bg-clip-text will-change-auto [-webkit-text-fill-color:transparent] [transform:translate3d(0,0,0)] motion-reduce:!tracking-normal max-[1280px]:!tracking-normal [@supports(color:oklch(0_0_0))]:bg-[linear-gradient(90deg,hsl(var(--s))_4%,color-mix(in_oklch,hsl(var(--sf)),hsl(var(--pf)))_22%,hsl(var(--p))_45%,color-mix(in_oklch,hsl(var(--p)),hsl(var(--a)))_67%,hsl(var(--a))_100.2%)] ">
+            <h2 className="font-bold mb-4 text-apple-blue">
               Những câu hỏi phổ biến
             </h2>
 
             {commonQuestions.map((mess, i) => (
               <li key={i} onClick={() => SetPromptInput(mess)}>
-                <p className="max-w-64">
-                  <FontAwesomeIcon icon={faMessage} />
+                <p className="max-w-64 py-2 text-apple-black hover:text-apple-blue transition-colors">
+                  <FontAwesomeIcon icon={faMessage} className="mr-2" />
                   {mess}
-                  {/* {mess.length < 20 ? mess : mess.slice(0, 20) + "..."} */}
                 </p>
               </li>
             ))}
@@ -212,22 +212,22 @@ function ChatBot(props) {
       </div>
 
       <div className={"flex justify-center h-[80vh]"}>
-        {/* Put this part before </body> tag */}
+        {/* Modal */}
         <input type="checkbox" id="my_modal_6" className="modal-toggle" />
         <div className="modal">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">{reference.title}</h3>{" "}
-            <p className="font-normal text-sm">Nguồn: {reference.source}</p>
-            <p className="py-4 text-sm">
+          <div className="modal-box bg-white rounded-2xl shadow-lg">
+            <h3 className="font-bold text-lg text-apple-black">{reference.title}</h3>
+            <p className="font-normal text-sm text-apple-gray">Nguồn: {reference.source}</p>
+            <p className="py-4 text-sm text-apple-black">
               {reference.text.slice(0, 700) + "..."}
             </p>
-            <p className="link link-primary truncate">
+            <p className="text-apple-blue truncate">
               <a href={reference.url} target="_blank">
                 {reference.url}
               </a>
             </p>
             <div className="modal-action">
-              <label htmlFor="my_modal_6" className="btn btn-error">
+              <label htmlFor="my_modal_6" className="btn bg-apple-blue text-white border-none rounded-full px-6">
                 ĐÓNG
               </label>
             </div>
@@ -238,41 +238,26 @@ function ChatBot(props) {
           id="chat-area"
           className="
           mt-5 text-sm 
-          scrollbar-thin scrollbar-thumb-gray-300 bg-white  
+          scrollbar-thin scrollbar-thumb-apple-gray bg-white  
           scrollbar-thumb-rounded-full scrollbar-track-rounded-full
-          rounded-3xl border-2 md:w-[50%] md:p-3 p-1  w-full overflow-auto scroll-y-auto h-[80%] "
+          rounded-3xl shadow-md md:w-[50%] md:p-3 p-1 w-full overflow-auto scroll-y-auto h-[80%]"
         >
           {dataChat.map((dataMessages, i) =>
             dataMessages[0] === "start" ? (
-              <div className="chat chat-start drop-shadow-md" key={i}>
+              <div className="chat chat-start" key={i}>
                 <div className="chat-image avatar">
-                  <div className="w-10 rounded-full border-2 border-blue-500">
+                  <div className="w-10 rounded-full border-2 border-apple-blue">
                     <img className="scale-150" src={robot_img} />
                   </div>
                 </div>
-                <div className="chat-bubble chat-bubble-info colo break-words ">
+                <div className="chat-bubble bg-apple-lightgray text-apple-black break-words shadow-sm">
                   <TypeAnimation
                     style={{ whiteSpace: 'pre-line' }} 
                     sequence={[
-                      // () => ScrollToEndChat(),
-                      dataMessages[1][0]
-                      
-                      ,
+                      dataMessages[1][0],
                       () => SetIsGen(false),
-                      // SetIsLoad(false),
-                      // .replace("\n\n", "")
-                      // .split("\n")
-                      // .map((item, key) => {
-                      //   return (
-                      //     <>
-                      //       {item.replace(/ /g, "\u00A0")}
-                      //       <br />
-                      //     </>
-                      //   );
-                      // })
                     ]}
                     cursor={false}
-                    // wrapper="span"
                     speed={100}
                   />
                   {dataMessages[1][1] === null ||
@@ -286,7 +271,7 @@ function ChatBot(props) {
                         {dataMessages[1][1].map((source, j) => (
                           <label
                             htmlFor="my_modal_6"
-                            className="kbd kbd-xs mr-1 hover:bg-sky-300 cursor-pointer"
+                            className="inline-block px-2 py-1 mr-1 bg-apple-blue text-white text-xs rounded-full hover:bg-apple-darkblue cursor-pointer transition-colors"
                             onClick={() =>
                               handleReferenceClick(source, dataMessages[1][2])
                             }
@@ -306,12 +291,11 @@ function ChatBot(props) {
               </div>
             ) : (
               <div className="chat chat-end">
-                {/* bg-gradient-to-r from-cyan-500 to-blue-500 */}
-                <div className="chat-bubble shadow-xl chat-bubble-primary bg-gradient-to-r from-purple-500 to-blue-500 text-white">
+                <div className="chat-bubble bg-apple-blue text-white shadow-sm">
                   {dataMessages[1][0]}
                   <>
                     <div className="divider m-0"></div>
-                    <p className="font-light text-xs text-cyan-50">
+                    <p className="font-light text-xs text-white opacity-80">
                       Tham khảo:{" "}
                       {dataMessages[1][1] == "wiki" ? "Wikipedia" : "NTTU"}
                     </p>
@@ -323,31 +307,31 @@ function ChatBot(props) {
           {isLoading ? (
             <div className="chat chat-start">
               <div className="chat-image avatar">
-                <div className="w-10 rounded-full border-2 border-blue-500">
+                <div className="w-10 rounded-full border-2 border-apple-blue">
                   <img src={robot_img} />
                 </div>
               </div>
-              <div className="chat-bubble chat-bubble-info">
+              <div className="chat-bubble bg-apple-lightgray text-apple-black">
                 <ScaleLoader
-                  color="#000000"
+                  color="#0071e3"
                   loading={true}
                   height={10}
                   width={10}
                   aria-label="Loading Spinner"
                   data-testid="loader"
                 />
-                <p className="text-xs font-medium">{timeOfRequest + "/60s"}</p>
+                <p className="text-xs font-medium text-apple-gray">{timeOfRequest + "/60s"}</p>
               </div>
             </div>
           ) : (
             ""
           )}
           <div ref={messagesEndRef} />
-          <div className="absolute bottom-[0.2rem] md:w-[50%] grid ">
+          <div className="absolute bottom-[0.2rem] md:w-[50%] grid">
             <input
               type="text"
               placeholder="Nhập câu hỏi tại đây..."
-              className="mr-1 shadow-xl border-2 focus:outline-none px-2 rounded-2xl input-primary col-start-1 md:col-end-12 col-end-11 "
+              className="mr-1 shadow-sm border border-gray-200 focus:outline-none focus:border-apple-blue px-4 py-3 rounded-full input-primary col-start-1 md:col-end-12 col-end-11"
               onChange={onChangeHandler}
               onKeyDown={handleKeyDown}
               disabled={isGen}
@@ -358,7 +342,7 @@ function ChatBot(props) {
               disabled={isGen}
               onClick={() => SendMessageChat()}
               className={
-                " drop-shadow-md md:col-start-12 rounded-2xl col-start-11 col-end-12 md:col-end-13 btn btn-active btn-primary btn-square bg-gradient-to-tl from-transparent via-blue-600 to-indigo-500"
+                "shadow-sm md:col-start-12 rounded-full col-start-11 col-end-12 md:col-end-13 btn bg-apple-blue hover:bg-apple-darkblue text-white border-none"
               }
             >
               <svg
@@ -375,7 +359,7 @@ function ChatBot(props) {
                 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
               </svg>
             </button>
-            <p className=" text-xs col-start-1 col-end-12 text-justify p-1">
+            <p className="text-xs col-start-1 col-end-12 text-justify p-1 text-apple-gray">
               <b>Lưu ý: </b>Mô hình có thể đưa ra câu trả lời không chính xác ở
               một số trường hợp, vì vậy hãy luôn kiểm chứng thông tin bạn nhé!
             </p>

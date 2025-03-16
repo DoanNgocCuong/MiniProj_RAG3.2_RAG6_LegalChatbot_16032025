@@ -5,6 +5,8 @@ import ScaleLoader from "react-spinners/ScaleLoader";
 import { TypeAnimation } from "react-type-animation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMessage } from "@fortawesome/free-regular-svg-icons";
+import logger from '../utils/logger'
+
 function ChatBot(props) {
   const messagesEndRef = useRef(null);
   const [timeOfRequest, SetTimeOfRequest] = useState(0);
@@ -62,8 +64,11 @@ function ChatBot(props) {
       SetDataChat((prev) => [...prev, ["end", [promptInput, sourceData]]]);
       SetChatHistory((prev) => [promptInput, ...prev]);
 
+      logger.debug('Sending chat message', { prompt: promptInput, source: sourceData })
+      logger.apiRequest('/api/v1/chat/completions', 'POST')
+
       // Updated API call to use the new backend
-      fetch("http://localhost:30000/v1/chat/completions", {
+      fetch("/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,10 +80,14 @@ function ChatBot(props) {
           model: "gpt-4o"
         })
       })
-        .then((response) => response.json())
+        .then((response) => {
+          logger.apiResponse('/api/v1/chat/completions', response.status)
+          return response.json()
+        })
         .then((result) => {
           // Extract the response content from the OpenAI-compatible format
           const responseContent = result.choices[0].message.content;
+          logger.debug('Received chat response', { responseLength: responseContent.length })
           
           // Parse source documents if available (assuming they might be in the response)
           let sourceDocuments = null;
@@ -107,7 +116,7 @@ function ChatBot(props) {
           SetIsLoad(false);
         })
         .catch((error) => {
-          console.error("API Error:", error);
+          logger.error("API Error:", error);
           SetDataChat((prev) => [
             ...prev,
             ["start", ["Lỗi, không thể kết nối với server", null]],
@@ -134,7 +143,7 @@ function ChatBot(props) {
         sourceType == "wiki"
           ? sources.metadata.title
           : sources.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " + sources.metadata.page + " (sổ tay SV)",
-      source: sourceType == "wiki" ? "Wikipedia" : "Đại học Nguyễn Tất Thành",
+      source: sourceType == "wiki" ? "Wikipedia" : "Trường Cao Đẳng Kỹ thuật Hải Quân",
       url:
         sourceType == "wiki"
           ? sources.metadata.source
@@ -197,7 +206,7 @@ function ChatBot(props) {
             <li>
               <label className="label cursor-pointer">
                 <span className="label-text font-medium">
-                  Đại học Nguyễn Tất Thành
+                  Trường Cao Đẳng Kỹ thuật Hải Quân
                 </span>
                 <input
                   value={"nttu"}

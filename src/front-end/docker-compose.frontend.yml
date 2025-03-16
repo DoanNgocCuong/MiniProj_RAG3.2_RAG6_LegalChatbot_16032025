@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chatbot-rag-frontend:latest
+    container_name: chatbot-rag-frontend
+    ports:
+      - "30001:30001"
+    restart: unless-stopped
+    networks:
+      - nttu-network
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+networks:
+  nttu-network:
+    driver: bridge 
