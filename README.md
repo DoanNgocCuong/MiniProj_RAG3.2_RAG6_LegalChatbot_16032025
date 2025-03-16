@@ -15,4 +15,4 @@ Support Project Graduation for 1 friend.  RAG on Legal Docs in vietnamese - xài
 - Command to push tag: `git push origin v1.1-16032025`
 
 ![HomePage](note/ver1_HomePage.png)
-![UIChat](note/ver1_UIChat.png)
+![UIChat](note/ver1_UIChatPage.png)
