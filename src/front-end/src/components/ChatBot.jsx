@@ -11,22 +11,17 @@ function ChatBot(props) {
   const messagesEndRef = useRef(null);
   const [timeOfRequest, SetTimeOfRequest] = useState(0);
   let [promptInput, SetPromptInput] = useState("");
-  let [sourceData, SetSourceData] = useState("nttu");
+  let [sourceData, SetSourceData] = useState("RAG");
   let [chatHistory, SetChatHistory] = useState([]);
 
   const commonQuestions=[
-    "Điều kiện nhận học bổng?",
-    "Bao nhiêu điểm thì học lực Xuất sắc?",
-    "Bao nhiêu điểm thì học lực Giỏi?",
-    "Bao nhiêu điểm thì học lực Khá?",
-    "Điều kiện thực tập tốt nghiệp là gì?",
-    "Học phần đã đăng ký có trạng thái N* là gì?",
-    "Điều kiện nào để được xét chuyển trường?",
-    "Lệ phí cấp bảng điểm là bao nhiêu?",
-    "Nếu điểm thi kết thúc học phần < 4 thì như thế nào?",
-    "Phí cấp lại thẻ sinh viên khi bị mất là bao nhiêu?",
-    "Để đạt loại tốt điểm rèn luyện cần bao nhiêu điểm?",
-    "Nếu sinh viên không đạt ở một học phần, phải làm gì?",
+    "Trình bày khái niệm, chế độ pháp lý vùng nội thủy theo UNCLOS 1982? Liên hệ vùng nội thủytheo luật biển Việt Nam?",
+    "Trình bày khái niệm, chế độ pháp lý vùng Lãnh hải theo UNCLOS 1982? Liên hệ vùng Lãnh hải, luật biển Việt Nam?",
+    "Trình bày khái niệm, chế độ pháp lý vùng Đặc quyền kinh tế theo UNCLOS 1982? Liên hệ vùng ĐQKT luật biển Việt Nam?", 
+    "Trình bày khái niệm, chế độ pháp lý Thềm lục địa theo UNCLOS 1982? Liên hệ Thềm lục địa luật biển Việt Nam?",
+    "Trình bày quy định về thềm lục địa mở rộng theo UNCLOS1982? Việc tranh chấp được quy định như thế nào? Liên hệ Việt Nam?",
+    "Đồng chí Trình bày khái niệm, chế độ pháp lý biển theo UNCLOS 1982?",
+    "Trình bày Quyền hạn và nghĩa vụ của nước trung lập và Tàu thuyền bên tham chiến ở vùng biển nước trung lập theo Luật chiến tranh trên biển?",
   ]
   let [isLoading, SetIsLoad] = useState(false);
   let [isGen, SetIsGen] = useState(false);
@@ -34,7 +29,7 @@ function ChatBot(props) {
     [
       "start",
       [
-        "Xin chào! Đây là NTTU Chatbot, trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì? Đừng quên chọn nguồn tham khảo phù hợp để mình có thể giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
+        "Xin chào! Đây là RAG Chatbot, trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì? Đừng quên chọn nguồn tham khảo phù hợp để mình có thể giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
         null,
       ],
     ],
@@ -209,9 +204,9 @@ function ChatBot(props) {
                   Trường Cao Đẳng Kỹ thuật Hải Quân
                 </span>
                 <input
-                  value={"nttu"}
+                  value={"RAG"}
                   type="radio"
-                  checked={sourceData === "nttu"}
+                  checked={sourceData === "RAG"}
                   onChange={(e) => {
                     SetSourceData(e.target.value);
                   }}
@@ -350,7 +345,7 @@ function ChatBot(props) {
                     <div className="divider m-0"></div>
                     <p className="font-light text-xs text-cyan-50">
                       Tham khảo:{" "}
-                      {dataMessages[1][1] == "wiki" ? "Wikipedia" : "NTTU"}
+                      {dataMessages[1][1] == "wiki" ? "Wikipedia" : "RAG"}
                     </p>
                   </>
                 </div>
