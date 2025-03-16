@@ -58,7 +58,7 @@ class ChatResponse(BaseModel):
     created: int = Field(default_factory=lambda: int(asyncio.get_event_loop().time()))
     model: str
     choices: List[Dict[str, Any]]
-    usage: Dict[str, int] = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    usage: Dict[str, Any] = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
 # Create FastAPI app
 app = FastAPI(

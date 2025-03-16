@@ -8,3 +8,4 @@ qdrant-client>=1.6.0
 openai>=1.0.0
 sentence-transformers>=2.2.2
 huggingface-hub>=0.16.4 
+typing-extensions>=4.11.1
