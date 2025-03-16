@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: legal-rag-backend:latest
-    container_name: legal-rag-backend
+    image: chatbot-rag-backend:latest
+    container_name: chatbot-rag-backend
     ports:
       - "30000:30000"
     environment:
