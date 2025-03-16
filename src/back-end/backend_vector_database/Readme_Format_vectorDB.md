@@ -71,3 +71,21 @@ question = match.payload.get('metadata', {}).get('question', '')
 content = match.payload.get('page_content', '')
 ```
 ```
+
+
+========
+## When successfully
+
+git commit -m "Load Excel Data => Qdant embedding - page_content+metadata:(source, question)
+
+- Viết thêm 1 file test_qdant_connection.py (Cursor)
+- Loading data from backend_vector_database/dataset/LegalRAG.xlsx...
+Creating 85 document objects with metadata...
+Initializing embeddings with model: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+Creating vector database in Qdrant collection: legal_rag
+Successfully added 85 documents to Qdrant"
+
+
+## View Dataset: 
+
+- Link: https://e5180f0c-01ea-46a0-95c9-208559c12cef.europe-west3-0.gcp.cloud.qdrant.io:6333/dashboard#/collections
