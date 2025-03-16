@@ -62,24 +62,52 @@ function ChatBot(props) {
       SetDataChat((prev) => [...prev, ["end", [promptInput, sourceData]]]);
       SetChatHistory((prev) => [promptInput, ...prev]);
 
-      // fetch("https://toad-vast-civet.ngrok-free.app/rag/" + sourceData + "?q=" + promptInput,
-      // Cuong thay base crul mới
-      fetch("https://briefly-knowing-treefrog.ngrok-free.app/rag/" + sourceData + "?q=" + promptInput,
-      {
-        method: "get",
-        headers: new Headers({
-          "ngrok-skip-browser-warning": "69420",
-        }),
+      // Updated API call to use the new backend
+      fetch("http://localhost:30000/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [
+            {"role": "user", "content": `[Nguồn: ${sourceData}] ${promptInput}`}
+          ],
+          model: "gpt-4o"
+        })
       })
         .then((response) => response.json())
         .then((result) => {
+          // Extract the response content from the OpenAI-compatible format
+          const responseContent = result.choices[0].message.content;
+          
+          // Parse source documents if available (assuming they might be in the response)
+          let sourceDocuments = null;
+          try {
+            // Look for source documents in the response
+            const sourceMatch = responseContent.match(/\(Nguồn: (.*?)\)/);
+            if (sourceMatch) {
+              sourceDocuments = [{
+                metadata: {
+                  page: sourceMatch[1].includes("trang") ? 
+                    sourceMatch[1].replace(/[^0-9]/g, '') : undefined,
+                  title: sourceMatch[1].includes("trang") ? 
+                    "Sổ tay sinh viên 2023" : sourceMatch[1]
+                },
+                page_content: responseContent
+              }];
+            }
+          } catch (e) {
+            console.error("Error parsing source documents:", e);
+          }
+          
           SetDataChat((prev) => [
             ...prev,
-            ["start", [result.result, result.source_documents, sourceData]],
+            ["start", [responseContent, sourceDocuments, sourceData]],
           ]);
           SetIsLoad(false);
         })
         .catch((error) => {
+          console.error("API Error:", error);
           SetDataChat((prev) => [
             ...prev,
             ["start", ["Lỗi, không thể kết nối với server", null]],
