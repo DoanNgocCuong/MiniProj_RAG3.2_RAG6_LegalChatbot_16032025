@@ -1,8 +1,6 @@
 version: '3.8'
 
 services:
-
-
   backend:
     build:
       context: ./back-end
@@ -23,13 +21,18 @@ services:
     restart: unless-stopped
     networks:
       - nttu-network
-    # Problem might be with healthcheck - commenting out temporarily
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:30000/health"]
-    #   interval: 30s
-    #   timeout: 10s
-    #   retries: 3
-    #   start_period: 40s
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:30000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   frontend:
     build:
       context: ./front-end
@@ -38,13 +41,25 @@ services:
     container_name: chatbot-rag-frontend
     ports:
       - "30001:30001"
+    volumes:
+      - ./front-end/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
     networks:
       - nttu-network
-    volumes:
-      - ./front-end/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:30001"]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 networks:
   nttu-network:
     driver: bridge 
