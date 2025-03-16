@@ -31,6 +31,7 @@ curl --location 'http://localhost:30002/v1/chat/completions' \
 Tầm: 500ms 
 
 
+
 2. Test câu hỏi cần suy luận, tầm 8-12s: 
 ```
 curl --location 'http://localhost:30002/v1/chat/completions' \
