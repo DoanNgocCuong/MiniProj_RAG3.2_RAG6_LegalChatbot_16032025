@@ -1,4 +1,7 @@
 
+Link Project : https://github.com/DoanNgocCuong/MiniProj_RAG3_chatbot_vietcunaModel_QdantDB_Legal2008Text_ngrokTunneling/settings
+
+
 # Support Project cho 1 bạn làm đồ án tốt nghiệp, 
 - Run theo code đã có. Chỉnh sửa các phần code các hàm cập nhật cho hợp update mới. 
 
