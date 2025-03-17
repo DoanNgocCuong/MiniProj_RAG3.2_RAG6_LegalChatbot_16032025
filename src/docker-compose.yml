@@ -1,5 +1,7 @@
 version: '3.8'
 
+name: legal-chatbot
+
 services:
   backend:
     build:
@@ -20,7 +22,7 @@ services:
       - ./back-end/.env:/app/.env
     restart: unless-stopped
     networks:
-      - RAG-network
+      - legal-chatbot-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:30000/health"]
       interval: 30s
@@ -45,7 +47,7 @@ services:
       - ./front-end/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
     networks:
-      - RAG-network
+      - legal-chatbot-network
     depends_on:
       - backend
     healthcheck:
@@ -61,5 +63,5 @@ services:
         max-file: "3"
 
 networks:
-  RAG-network:
-    driver: bridge 
+  legal-chatbot-network:
+    name: legal-chatbot-network 
