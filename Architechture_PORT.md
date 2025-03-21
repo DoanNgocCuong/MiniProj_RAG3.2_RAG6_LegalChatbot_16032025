@@ -80,3 +80,4 @@ server {
 - Code không phụ thuộc vào môi trường
 - Dễ dàng chuyển đổi giữa các môi trường
 - Cấu hình tập trung trong các file riêng biệt (vite.config.js, nginx.conf)
+
