@@ -328,7 +328,6 @@ function ChatBot(props) {
                   }`}>
                     {dataMessages[1][0]}
                     <p className={`font-light text-xs ${isDarkMode ? 'text-gray-300' : 'text-cyan-50'}`}>
-                      Tham khảo: RAG
                     </p>
                   </div>
                 </div>
