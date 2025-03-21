@@ -19,7 +19,7 @@ function ChatBot(props) {
     [
       "start",
       [
-        "Xin chào! Đây là RAG Chatbot, hệ thống truy vấn thông tin Luật biển Việt Nam và Quy tắc tránh va quốc tế trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì, để mình giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
+        "Xin chào! Đây là Trợ lý truy vấn thông tin Luật biển và Quy tắc tránh va quốc tế! Bạn muốn tìm kiếm thông tin về những gì, để mình giúp bạn tìm kiếm thông tin chính xác nhất nha. 😄",
         null,
       ],
     ],
@@ -187,7 +187,7 @@ function ChatBot(props) {
       [
         "start",
         [
-          "Xin chào! Đây là RAG Chatbot, trợ lý đắc lực dành cho bạn! Bạn muốn tìm kiếm thông tin về những gì?",
+          "Xin chào! Đây là Trợ lý truy vấn thông tin Luật biển và Quy tắc tránh va quốc tế! Bạn muốn tìm kiếm thông tin về những gì?",
           null,
         ],
       ],
@@ -256,7 +256,7 @@ function ChatBot(props) {
           <div className="flex items-center justify-between p-2 border-b">
             <h1 className="text-xl font-semibold">
               <FontAwesomeIcon icon={faMessage} className="mr-2" />
-              Trò chuyện với RAG Chatbot
+              Trò chuyện với Trợ lý
             </h1>
             
             {/* Mobile: Show chat history button */}
@@ -278,7 +278,7 @@ function ChatBot(props) {
                       <img src={robot_img} />
                     </div>
                   </div>
-                  <div className={`chat-bubble ${isDarkMode ? 'bg-blue-900 text-white' : 'chat-bubble-info'}`}>
+                  <div className={`chat-bubble ${isDarkMode ? 'bg-blue-900 text-white' : 'chat-bubble-info'} text-lg`}>
                     <TypeAnimation
                       style={{ whiteSpace: 'pre-line' }} 
                       sequence={[
@@ -296,7 +296,7 @@ function ChatBot(props) {
                     ) : (
                       <>
                         <div className="divider m-0"></div>
-                        <p className={`font-semibold text-xs ${isDarkMode ? 'text-gray-300' : ''}`}>
+                        <p className={`font-semibold text-sm ${isDarkMode ? 'text-gray-300' : ''}`}>
                           Tham khảo:{" "}
                           {dataMessages[1][1].map((source, j) => (
                             <label
@@ -321,7 +321,7 @@ function ChatBot(props) {
                 </div>
               ) : (
                 <div className="chat chat-end" key={i}>
-                  <div className={`chat-bubble shadow-xl ${
+                  <div className={`chat-bubble shadow-xl text-lg ${
                     isDarkMode 
                       ? 'bg-gradient-to-r from-purple-900 to-blue-900 text-white' 
                       : 'chat-bubble-primary bg-gradient-to-r from-purple-500 to-blue-500 text-white'
@@ -340,7 +340,7 @@ function ChatBot(props) {
                     <img src={robot_img} />
                   </div>
                 </div>
-                <div className="chat-bubble chat-bubble-info">
+                <div className="chat-bubble chat-bubble-info text-lg">
                   <ScaleLoader
                     color="#000000"
                     loading={true}
@@ -364,7 +364,7 @@ function ChatBot(props) {
             <input
               type="text"
               placeholder="Nhập câu hỏi tại đây..."
-              className={`shadow-xl border-2 focus:outline-none px-2 py-3 rounded-2xl ${
+              className={`shadow-xl border-2 focus:outline-none px-2 py-3 rounded-2xl text-lg ${
                 isDarkMode 
                   ? 'bg-gray-800 text-white border-blue-700' 
                   : 'input-primary'
