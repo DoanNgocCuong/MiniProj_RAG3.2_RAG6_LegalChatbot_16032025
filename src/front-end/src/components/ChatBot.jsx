@@ -40,9 +40,10 @@ function ChatBot(props) {
     "Trình bày khái niệm, chế độ pháp lý biển theo UNCLOS 1982?",
   ];
 
+  //  Sử dụng: isLoading để: Tự động cuộn xuống dưới khi có tin nhắn mới: ?
   useEffect(() => {
     ScrollToEndChat();
-  }, [isLoading]);
+  }, [dataChat, isLoading]);
   useEffect(() => {
     const interval = setInterval(() => {
       SetTimeOfRequest((timeOfRequest) => timeOfRequest + 1);
@@ -71,7 +72,7 @@ function ChatBot(props) {
   }, []);
 
   function ScrollToEndChat() {
-    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
   const onChangeHandler = (event) => {
     SetPromptInput(event.target.value);
@@ -267,7 +268,8 @@ function ChatBot(props) {
           </div>
           
           {/* Chat messages area */}
-          <div className="chat-container flex-1 overflow-y-auto p-2 max-h-[75vh] scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-100">
+          {/*  Sử dụng: isLoading để: Tự động cuộn xuống dưới khi có tin nhắn mới: ? */}
+          <div className="chat-container flex-1 overflow-y-auto p-2 pb-24 max-h-[75vh] scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-100">
             {dataChat.map((dataMessages, i) =>
               dataMessages[0] === "start" ? (
                 <div className="chat chat-start" key={i}>
@@ -354,11 +356,12 @@ function ChatBot(props) {
             ) : (
               ""
             )}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="pt-2" />
           </div>
           
           {/* Chat input area - fixing width and positioning */}
-          <div className="absolute bottom-[0.2rem] left-0 right-0 w-full px-4 grid grid-cols-12 gap-1">
+          {/* Sử dụng: isLoading để: Tự động cuộn xuống dưới khi có tin nhắn mới: ? */}
+          <div className="absolute bottom-0 left-0 right-0 w-full px-4 grid grid-cols-12 gap-1 bg-base-100 pb-2 pt-1 border-t border-gray-200">
             <input
               type="text"
               placeholder="Nhập câu hỏi tại đây..."
