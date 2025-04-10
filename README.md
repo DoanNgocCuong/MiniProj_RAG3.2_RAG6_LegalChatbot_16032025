@@ -21,3 +21,12 @@ Support Project Graduation for 1 friend.  RAG on Legal Docs in vietnamese - xài
 ![UIChat](note/ver1_UIChatPage.png)
 
 Link Demo: https://youtu.be/ZOTE_l9lsNI 
+
+---
+## Update: 1.2 - 11/04/2025
+- Enhanced authentication flow with Supabase
+- Dark mode optimized login/register UI
+- Comprehensive logging system
+- Environment variables management
+  
+![Login](note/LOGIN_2.png)
