@@ -1,5 +1,17 @@
 # Changelog
 
+## [v1.2] - 2025-04-11
+
+### Added
+- Enhanced Supabase authentication implementation
+- Detailed logging system for debugging
+- Environment variable management improvements
+- Comprehensive implementation documentation
+
+### Technical
+- Git tag: v1.2-11042025
+- Command to push tag: `git push origin v1.2-11042025`
+
 ## [v1.1] - 2025-03-16
 
 ### Added
