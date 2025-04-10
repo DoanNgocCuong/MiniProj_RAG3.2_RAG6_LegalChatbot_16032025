@@ -1,10 +1,12 @@
-import { useLocation,useNavigate,Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import schoolLogo from '../assets/school.jpg';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 function NavBar() {
-  const navigate = useNavigate ();
+  const navigate = useNavigate();
   const location = useLocation();
+  const { user, signOut } = useAuth();
   const [theme, setTheme] = useState('winter'); // Default light theme
   
   // Function to toggle theme
@@ -58,12 +60,12 @@ function NavBar() {
             </li>
             <li>
               <Link to="/faq">
-              <a>FAQs</a>
+                <a>FAQs</a>
               </Link>
             </li>
             <li>
               <Link to="/issue">
-              <a>Báo lỗi/ Góp ý</a>
+                <a>Báo lỗi/ Góp ý</a>
               </Link>
             </li>
           </ul>
@@ -107,6 +109,41 @@ RAG Chatbot
             </svg>
           )}
         </button>
+        
+        {/* User profile or login button */}
+        {user ? (
+          <div className="dropdown dropdown-end">
+            <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+              <div className="w-10 rounded-full">
+                <img
+                  src={
+                    user.user_metadata?.avatar_url ||
+                    `https://ui-avatars.com/api/?name=${user.email}`
+                  }
+                  alt="User avatar"
+                />
+              </div>
+            </label>
+            <ul
+              tabIndex={0}
+              className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
+            >
+              <li>
+                <a className="justify-between">
+                  {user.email}
+                  <span className="badge">New</span>
+                </a>
+              </li>
+              <li>
+                <a onClick={() => signOut()}>Đăng xuất</a>
+              </li>
+            </ul>
+          </div>
+        ) : (
+          <Link to="/login" className="btn btn-primary">
+            Đăng nhập
+          </Link>
+        )}
         
         {/* School logo */}
         <img 
