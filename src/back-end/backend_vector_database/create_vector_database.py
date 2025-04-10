@@ -58,6 +58,7 @@ def create_vector_database(excel_file_path, collection_name=None):
     documents = [
         Document(
             page_content=answer,
+            # metadata: tùy chọn? source: link excel
             metadata={"source": excel_file_path, "question": question}
         )
         for question, answer in zip(questions, answers)
