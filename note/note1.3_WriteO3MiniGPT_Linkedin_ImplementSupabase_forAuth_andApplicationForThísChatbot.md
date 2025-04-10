@@ -1,3 +1,23 @@
+Link Linkedin https://www.linkedin.com/posts/doan-ngoc-cuong_ai-chatbot-rag-activity-7316177281717059585-2Kkt?utm_source=social_share_send&utm_medium=member_desktop_web&rcm=ACoAAC3wojwBYfkOk3q0b6y8Z_UF_N5ELvjQYVI
+
+Hôm nay em/mình có làm 1 bài về triển khai Supabase Authentication cho ứng dụng CHATBOT RAG do order của bạn mình.
+Trong quá trình làm em/mình note lại và nhờ AI format để TỔNG HỢP THÀNH BÀI SAU. 
+---
+Mong mn đọc và có được kinh nghiệm từ đây.
+
+hashtag#ai hashtag#chatbot hashtag#rag hashtag#auth hashtag#authentication 
+hashtag#supabase 
+
+hashtag#gosinga
+hashtag#doanngoccuong
+hashtag#wecommit100x hashtag#wecommit100xshare
+hashtag#codemely
+hashtag#x3nangsuat hashtag#bkegnh
+hashtag#aio
+hashtag#theanhenglish
+hashtag#mlops hashtag#FSDS
+
+
 Dưới đây là một bài hướng dẫn chi tiết dành cho người mới bắt đầu về cách triển khai Supabase cho authentication, từ khâu thiết lập tài khoản đến việc tích hợp vào dự án frontend. Sau đó, chúng ta sẽ cùng xem xét ví dụ mà bạn đã trình bày để hiểu cách áp dụng vào thực tế.
 
 ---
