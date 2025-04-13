@@ -30,3 +30,40 @@ Link Demo: https://youtu.be/ZOTE_l9lsNI
 - Environment variables management
   
 ![Login](note/LOGIN_2.png)
+
+
+```mermaid
+flowchart TD
+    A["Dữ liệu đầu vào: File Excel và file văn bản"]
+    B["Tiền xử lý dữ liệu: Đọc, tách và chuẩn hóa văn bản"]
+    C["Tạo đối tượng Tài liệu (Nội dung & Metadata)"]
+    D["Tính toán Embedding (Sentence-Transformers)"]
+    E["Lưu trữ Embedding vào Qdrant"]
+    F["API Backend (FastAPI)"]
+    G["Loại truy vấn?"]
+    H["Tìm kiếm chính xác (lọc theo câu hỏi)"]
+    I["Tìm kiếm ngữ nghĩa (truy vấn vector trong Qdrant)"]
+    J["Độ tin cậy cao?"]
+    K["Phản hồi trực tiếp"]
+    L["Gộp ngữ cảnh và gọi LLM (OpenAI)"]
+    M["Định dạng phản hồi (bao gồm nguồn, metadata)"]
+    N["Gửi phản hồi đến Client"]
+    O["Giao diện Người dùng (React)"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G -- "Tìm kiếm chính xác" --> H
+    G -- "Không tìm thấy chính xác" --> I
+    H --> M
+    I --> J
+    J -- "Có" --> K
+    J -- "Không" --> L
+    K --> M
+    L --> M
+    M --> N
+    N --> O
+```
