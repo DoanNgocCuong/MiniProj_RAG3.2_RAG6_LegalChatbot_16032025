@@ -34,7 +34,15 @@ flowchart TD
     N --> O
 ```
 
-Dưới đây là sơ đồ pipeline bằng Mermaid được chuyển hoàn toàn sang tiếng Việt, mô tả chi tiết toàn bộ luồng xử lý của hệ thống:
+---
+
+# Update
+Dưới đây là sơ đồ pipeline bằng Mermaid (đã chuyển hoàn toàn sang tiếng Việt) với điều kiện so sánh độ trùng khớp:
+
+- Nếu tỷ lệ trùng khớp từ tìm kiếm chính xác ≥ 80% thì trả về ngay câu trả lời chuẩn (đã được chuẩn bị sẵn) kèm theo thông tin nguồn và metadata.
+- Nếu tỷ lệ trùng khớp < 80% thì chuyển sang sử dụng tìm kiếm ngữ nghĩa: chọn Top K kết quả, gộp ngữ cảnh và gọi LLM (OpenAI) để sinh ra phản hồi, sau đó định dạng và gửi về phía client.
+
+Dưới đây là mã sơ đồ:
 
 ```mermaid
 flowchart TD
@@ -44,15 +52,16 @@ flowchart TD
     D["Tính toán Embedding (Sentence-Transformers)"]
     E["Lưu trữ Embedding vào Qdrant"]
     F["API Backend (FastAPI)"]
-    G["Loại truy vấn?"]
+    G["Xác định loại truy vấn"]
     H["Tìm kiếm chính xác (lọc theo câu hỏi)"]
-    I["Tìm kiếm ngữ nghĩa (truy vấn vector trong Qdrant)"]
-    J["Độ tin cậy cao?"]
-    K["Phản hồi trực tiếp"]
-    L["Gộp ngữ cảnh và gọi LLM (OpenAI)"]
-    M["Định dạng phản hồi (bao gồm nguồn, metadata)"]
-    N["Gửi phản hồi đến Client"]
-    O["Giao diện Người dùng (React)"]
+    I["Độ trùng khớp ≥ 80%?"]
+    J["Trả về phản hồi trực tiếp (Câu trả lời chuẩn)"]
+    K["Tìm kiếm ngữ nghĩa (truy vấn vector trong Qdrant)"]
+    L["Chọn Top K kết quả"]
+    M["Gộp ngữ cảnh và gọi LLM (OpenAI)"]
+    N["Định dạng phản hồi: Câu trả lời, nguồn & metadata"]
+    O["Gửi phản hồi đến Client"]
+    P["Giao diện Người dùng (React)"]
 
     A --> B
     B --> C
@@ -60,56 +69,53 @@ flowchart TD
     D --> E
     E --> F
     F --> G
-    G -- "Tìm kiếm chính xác" --> H
-    G -- "Không tìm thấy chính xác" --> I
-    H --> M
-    I --> J
-    J -- "Có" --> K
-    J -- "Không" --> L
-    K --> M
+    G -- "Truy vấn chính xác" --> H
+    H --> I
+    I -- "Có (≥ 80%)" --> J
+    I -- "Không (< 80%)" --> K
+    K --> L
     L --> M
+    J --> N
     M --> N
     N --> O
+    O --> P
 ```
 
 ### Giải thích sơ đồ:
 1. **Dữ liệu đầu vào:**  
-   Dữ liệu được thu thập từ các file Excel chứa cặp câu hỏi – đáp án và các file văn bản.
+   - Hệ thống nhận dữ liệu từ file Excel chứa cặp câu hỏi – đáp án và các file văn bản khác.
 
 2. **Tiền xử lý dữ liệu:**  
-   Dữ liệu được đọc vào, sau đó được tách thành các đoạn văn bản theo tiêu chí định sẵn và được chuẩn hóa để đảm bảo tính nhất quán.
+   - Đọc dữ liệu, tách các đoạn văn bản theo tiêu chí định sẵn và chuẩn hóa dữ liệu.
 
 3. **Tạo đối tượng Tài liệu:**  
-   Mỗi đoạn văn bản được chuyển đổi thành đối tượng tài liệu, với thông tin bao gồm nội dung và metadata (ví dụ như nguồn dữ liệu, câu hỏi gốc nếu có).
+   - Mỗi đoạn văn bản được chuyển thành một đối tượng tài liệu với các trường: nội dung (page_content) và metadata (nguồn, câu hỏi, …).
 
 4. **Tính toán Embedding:**  
-   Sử dụng mô hình chuyển đổi ngôn ngữ (ví dụ, sentence-transformers) để chuyển văn bản thành vector embedding đại diện cho ý nghĩa ngữ cảnh.
+   - Sử dụng mô hình chuyển đổi ngôn ngữ (sentence-transformers) để chuyển nội dung thành vector embedding thể hiện ý nghĩa ngữ cảnh.
 
 5. **Lưu trữ Embedding vào Qdrant:**  
-   Các vector embedding được lưu trữ vào cơ sở dữ liệu vector Qdrant để phục vụ việc truy vấn sau này.
+   - Các vector embedding được lưu trữ trong Qdrant để phục vụ truy vấn sau này.
 
 6. **API Backend (FastAPI):**  
-   Hệ thống backend xử lý các yêu cầu truy vấn từ phía người dùng thông qua API được triển khai bằng FastAPI.
+   - Hệ thống backend nhận yêu cầu từ phía người dùng và xác định loại truy vấn.
 
 7. **Xác định loại truy vấn:**  
-   Hệ thống xác định xem truy vấn của người dùng có phù hợp với tìm kiếm chính xác hay cần sử dụng tìm kiếm ngữ nghĩa.
+   - Hệ thống thực hiện tìm kiếm chính xác dựa trên bộ lọc theo câu hỏi.
 
-8. **Tìm kiếm chính xác:**  
-   Nếu có, hệ thống dùng bộ lọc trên câu hỏi để truy xuất tài liệu khớp hoàn toàn.
+8. **So sánh độ trùng khớp:**  
+   - Nếu tỷ lệ trùng khớp từ tìm kiếm chính xác đạt ≥ 80% thì hệ thống sẽ trả về ngay câu trả lời chuẩn đã được chuẩn bị sẵn (kèm theo thông tin nguồn và metadata).
 
 9. **Tìm kiếm ngữ nghĩa:**  
-   Nếu không tìm thấy kết quả chính xác, câu hỏi của người dùng sẽ được chuyển đổi thành vector embedding và so sánh với các vector trong Qdrant.
+   - Nếu không đạt tỷ lệ trùng khớp ≥ 80%, hệ thống sẽ thực hiện tìm kiếm ngữ nghĩa bằng cách tạo embedding cho câu hỏi và so sánh với các vector trong Qdrant, sau đó chọn ra Top K kết quả.
 
-10. **Kiểm tra độ tin cậy:**  
-    Nếu kết quả từ truy vấn ngữ nghĩa đạt được điểm tin cậy cao, hệ thống có thể trả về phản hồi trực tiếp; nếu không, các đoạn văn bản liên quan sẽ được gộp làm ngữ cảnh và gửi kèm với yêu cầu gọi LLM (OpenAI) để sinh ra phản hồi.
+10. **Gộp ngữ cảnh và gọi LLM:**  
+    - Các kết quả Top K được gộp thành một context chung và được gửi kèm với câu truy vấn tới LLM (ví dụ: OpenAI) để sinh ra câu trả lời tự động.
 
 11. **Định dạng phản hồi:**  
-    Kết quả, bao gồm các thông tin nguồn và metadata, được định dạng lại theo chuẩn trước khi gửi về cho client.
+    - Câu trả lời cuối cùng được định dạng lại bao gồm cả thông tin nguồn và metadata nếu cần.
 
 12. **Gửi phản hồi đến Client:**  
-    Phản hồi đã định dạng được gửi về cho phía client.
+    - Phản hồi được gửi về cho client để hiển thị qua giao diện người dùng (React).
 
-13. **Giao diện Người dùng (React):**  
-    Frontend (được xây dựng bằng React) nhận và hiển thị phản hồi, đồng thời cung cấp các giao diện như Chat, FAQ, Issue,… để người dùng tương tác.
-
-Sơ đồ pipeline này cung cấp cái nhìn tổng quan về toàn bộ quy trình xử lý từ lúc nhập liệu cho đến khi phản hồi hiển thị cho người dùng, đảm bảo rằng các bước được tích hợp liền mạch nhằm mang lại trải nghiệm chính xác và nhanh chóng.
+Sơ đồ này giúp minh họa toàn bộ quy trình xử lý trong hệ thống từ lúc nhận dữ liệu cho đến khi trả về câu trả lời hoàn chỉnh cho người dùng.

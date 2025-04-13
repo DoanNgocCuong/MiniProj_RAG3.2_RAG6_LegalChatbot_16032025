@@ -40,15 +40,16 @@ flowchart TD
     D["Tính toán Embedding (Sentence-Transformers)"]
     E["Lưu trữ Embedding vào Qdrant"]
     F["API Backend (FastAPI)"]
-    G["Loại truy vấn?"]
+    G["Xác định loại truy vấn"]
     H["Tìm kiếm chính xác (lọc theo câu hỏi)"]
-    I["Tìm kiếm ngữ nghĩa (truy vấn vector trong Qdrant)"]
-    J["Độ tin cậy cao?"]
-    K["Phản hồi trực tiếp"]
-    L["Gộp ngữ cảnh và gọi LLM (OpenAI)"]
-    M["Định dạng phản hồi (bao gồm nguồn, metadata)"]
-    N["Gửi phản hồi đến Client"]
-    O["Giao diện Người dùng (React)"]
+    I["Độ trùng khớp ≥ 80%?"]
+    J["Trả về phản hồi trực tiếp (Câu trả lời chuẩn)"]
+    K["Tìm kiếm ngữ nghĩa (truy vấn vector trong Qdrant)"]
+    L["Chọn Top K kết quả"]
+    M["Gộp ngữ cảnh và gọi LLM (OpenAI)"]
+    N["Định dạng phản hồi: Câu trả lời, nguồn & metadata"]
+    O["Gửi phản hồi đến Client"]
+    P["Giao diện Người dùng (React)"]
 
     A --> B
     B --> C
@@ -56,14 +57,15 @@ flowchart TD
     D --> E
     E --> F
     F --> G
-    G -- "Tìm kiếm chính xác" --> H
-    G -- "Không tìm thấy chính xác" --> I
-    H --> M
-    I --> J
-    J -- "Có" --> K
-    J -- "Không" --> L
-    K --> M
+    G -- "Truy vấn chính xác" --> H
+    H --> I
+    I -- "Có (≥ 80%)" --> J
+    I -- "Không (< 80%)" --> K
+    K --> L
     L --> M
+    J --> N
     M --> N
     N --> O
+    O --> P
+
 ```
