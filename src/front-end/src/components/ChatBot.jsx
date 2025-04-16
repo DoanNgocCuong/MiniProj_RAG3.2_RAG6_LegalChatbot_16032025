@@ -253,22 +253,7 @@ function ChatBot(props) {
         </div>
       
         <div className="w-full md:w-4/5 bg-base-100 shadow-xl rounded-lg flex flex-col justify-between relative">
-          <div className="flex items-center justify-between p-2 border-b">
-            <h1 className="text-xl font-semibold">
-              <FontAwesomeIcon icon={faMessage} className="mr-2" />
-              Trò chuyện với Trợ lý
-            </h1>
-            
-            {/* Mobile: Show chat history button */}
-            <button className="md:hidden btn btn-sm btn-circle" onClick={() => document.getElementById('history-drawer').checked = true}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" />
-              </svg>
-            </button>
-          </div>
-          
           {/* Chat messages area */}
-          {/*  Sử dụng: isLoading để: Tự động cuộn xuống dưới khi có tin nhắn mới: ? */}
           <div className="chat-container flex-1 overflow-y-auto p-2 pb-24 max-h-[75vh] scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-blue-100">
             {dataChat.map((dataMessages, i) =>
               dataMessages[0] === "start" ? (
