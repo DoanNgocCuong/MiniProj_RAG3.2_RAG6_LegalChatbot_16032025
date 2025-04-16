@@ -30,3 +30,38 @@ Link Demo: https://youtu.be/ZOTE_l9lsNI
 - Environment variables management
   
 ![Login](note/LOGIN_2.png)
+
+
+```mermaid
+flowchart TD
+    A["Dữ liệu đầu vào
+    (Excel Q&A & Văn bản Luật biển)"]
+    B["Tiền xử lý & Tính Embedding
+    (Chunking, tạo nội dung (content), Metadata(Nguồn, câu hỏi))"]
+    C["Tính toán Embedding của nội dung và Lưu trữ vào Qdrant 
+    (Lưu trữ: Vector Embedding, Content & Metadata)"]
+    D["API Backend (FastAPI)
+    (Nhận yêu cầu truy vấn từ User và Phản hồi)"]
+    E["Kiểm tra truy vấn
+    (So sánh câu hỏi của User với câu hỏi trong Metadata. Kiểm tra độ trùng ≥ 80%)"]
+    F["Nếu trùng ≥ 80%
+    => Phản hồi chuẩn nội dung có sẵn"]
+    G["Nếu không đạt (< 80%)
+    => Truy vấn ngữ nghĩa, chọn Top K nội dung gần với câu hỏi của user nhất, để tạo thành Ngữ cảnh (Context) 
+    => Gộp câu truy vấn của user với Context, sau đó gọi LLM (OpenAI)"]
+    H["Định dạng phản hồi (Câu trả lời, nguồn tài liệu, Metadata)"]
+    I["Gửi phản hồi đến Client
+    (Hiển thị trên giao diện React)"]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E -- "Trùng ≥ 80%" --> F
+    E -- "< 80%" --> G
+    F --> H
+    G --> H
+    H --> I
+
+
+```
