@@ -1,5 +1,0 @@
-QDRANT_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwiZXhwIjoxODI4NTI2ODY1fQ.0PykeDW9qK51f7X0qVf-ab2YHfZfaqmAkEki12G-ihA
-QDRANT_URL=https://e5180f0c-01ea-46a0-95c9-208559c12cef.europe-west3-0.gcp.cloud.qdrant.io
-EMBEDDINGS_MODEL_NAME=sentence-transformers/paraphrase-multilingual-mpnet-base-v2
-OPENAI_API_KEY=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
-HUGGINGFACE_API_KEY=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

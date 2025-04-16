@@ -43,7 +43,7 @@ function ChatBot(props) {
   //  Sử dụng: isLoading để: Tự động cuộn xuống dưới khi có tin nhắn mới: ?
   useEffect(() => {
     ScrollToEndChat();
-  }, [dataChat, isLoading]);
+  }, [dataChat, isLoading, isGen]);
   useEffect(() => {
     const interval = setInterval(() => {
       SetTimeOfRequest((timeOfRequest) => timeOfRequest + 1);
