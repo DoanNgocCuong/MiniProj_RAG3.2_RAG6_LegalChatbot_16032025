@@ -11,13 +11,6 @@ services:
     container_name: chatbot-rag-backend
     ports:
       - "30000:30000"
-    environment:
-      - QDRANT_URL=${QDRANT_URL}
-      - QDRANT_API_KEY=${QDRANT_API_KEY}
-      - COLLECTION_NAME=${COLLECTION_NAME:-legal_rag}
-      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
-      - EMBEDDINGS_MODEL_NAME=${EMBEDDINGS_MODEL_NAME:-sentence-transformers/paraphrase-multilingual-mpnet-base-v2}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./back-end/.env:/app/.env
     restart: unless-stopped
