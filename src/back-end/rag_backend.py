@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
+from huggingface_hub import InferenceClient
 from qdrant_client import QdrantClient, models
 from openai import OpenAI
 import logging
@@ -77,24 +77,24 @@ app.add_middleware(
 )
 
 # Global variables
-embeddings = None
+embeddings_client = None
 qdrant_client = None
 openai_client = None
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize connections on startup"""
-    global embeddings, qdrant_client, openai_client
+    global embeddings_client, qdrant_client, openai_client
     
     try:
         logger.info("Initializing RAG Backend...")
         
-        # Initialize embeddings
-        embeddings = HuggingFaceInferenceAPIEmbeddings(
-            api_key=Config.HUGGINGFACE_API_KEY,
-            model_name=Config.EMBEDDINGS_MODEL_NAME
+        # Initialize embeddings client
+        embeddings_client = InferenceClient(
+            provider="hf-inference",
+            api_key=Config.HUGGINGFACE_API_KEY
         )
-        logger.info("Embeddings model initialized")
+        logger.info("Embeddings client initialized")
 
         # Initialize Qdrant
         qdrant_client = QdrantClient(
@@ -140,11 +140,14 @@ async def shutdown_event():
 
 def search_semantic(query: str, top_k: int = 5):
     """Search for semantically similar documents"""
-    global embeddings, qdrant_client
+    global embeddings_client, qdrant_client
     
     try:
-        # Create embedding for query
-        query_vector = embeddings.embed_query(query)
+        # Create embedding for query using the new client
+        query_vector = embeddings_client.feature_extraction(
+            model=Config.EMBEDDINGS_MODEL_NAME,
+            text=query
+        )
         
         # Search in Qdrant
         search_results = qdrant_client.search(
@@ -210,9 +213,9 @@ async def get_openai_response(messages: List[Dict[str, str]], model: str = "gpt-
 @app.post("/v1/chat/completions", response_model=ChatResponse)
 async def chat_completions(request: ChatRequest):
     """Chat completions endpoint compatible with OpenAI format"""
-    global embeddings, qdrant_client, openai_client
+    global embeddings_client, qdrant_client, openai_client
     
-    if not embeddings or not qdrant_client or not openai_client:
+    if not embeddings_client or not qdrant_client or not openai_client:
         raise HTTPException(status_code=503, detail="Service not initialized")
     
     try:
@@ -333,11 +336,11 @@ async def chat_completions(request: ChatRequest):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    global embeddings, qdrant_client, openai_client
+    global embeddings_client, qdrant_client, openai_client
     
     status = {
         "status": "healthy",
-        "embeddings": embeddings is not None,
+        "embeddings": embeddings_client is not None,
         "qdrant": qdrant_client is not None,
         "openai": openai_client is not None
     }

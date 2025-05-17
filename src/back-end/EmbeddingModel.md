@@ -1,0 +1,2 @@
+- sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+- AITeamVN/Vietnamese_Embedding

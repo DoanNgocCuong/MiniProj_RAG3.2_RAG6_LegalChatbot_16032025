@@ -6,14 +6,14 @@ WORKDIR /app
 COPY requirements_backend.txt .
 RUN pip install --no-cache-dir -r requirements_backend.txt
 
-# Sao chép mã nguồn
-COPY rag_backend.py .
-COPY .env .
-
 # Cài đặt các thư viện bổ sung cho sentence-transformers
 RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
+
+# Sao chép mã nguồn
+COPY rag_backend.py .
+COPY .env .
 
 # Expose port
 EXPOSE 30000
