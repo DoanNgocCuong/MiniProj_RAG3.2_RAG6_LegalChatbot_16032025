@@ -99,7 +99,7 @@ function ChatBot(props) {
           messages: [
             {"role": "user", "content": `[Nguồn: ${sourceData}] ${promptInput}`}
           ],
-          model: "gpt-4o"
+          model: "gpt-4o-mini"
         })
       })
         .then((response) => {
