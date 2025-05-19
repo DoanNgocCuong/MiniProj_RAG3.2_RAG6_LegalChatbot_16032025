@@ -7,10 +7,16 @@ services:
       - "8001:8000"
     volumes:
       - ./model:/app/model
+      - ./logs:/app/logs
     deploy:
       resources:
+        limits:
+          memory: 12G
         reservations:
           devices:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TORCH_CUDA_ARCH_LIST="8.6"  # Cho RTX 4060
