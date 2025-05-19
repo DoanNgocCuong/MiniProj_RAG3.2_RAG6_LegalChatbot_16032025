@@ -1,11 +1,12 @@
 version: '3.8'
 
 services:
-  embedding-api:
+  embedding-model-offline:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: embedding-api
+    image: embedding-model-offline:latest
+    container_name: embedding-model-offline
     ports:
       - "8000:8000"
     volumes:

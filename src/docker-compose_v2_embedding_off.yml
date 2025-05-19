@@ -25,10 +25,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    environment:
-      - EMBEDDING_API_URL=http://embedding-api:8000
-    depends_on:
-      - embedding-api
 
   frontend:
     build:
@@ -56,36 +52,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-  embedding-api:
-    build:
-      context: ./embedding-model-offline
-      dockerfile: Dockerfile
-    container_name: embedding-api
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./embedding-model-offline/model:/app/model
-      - ./embedding-model-offline/app:/app
-      - ./embedding-model-offline/logs:/app/logs
-    environment:
-      - MODEL_PATH=/app/model
-      - MODEL_NAME=paraphrase-multilingual-mpnet-base-v2
-    restart: unless-stopped
-    networks:
-      - legal-chatbot-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-        reservations:
-          memory: 2G
 
 networks:
   legal-chatbot-network:

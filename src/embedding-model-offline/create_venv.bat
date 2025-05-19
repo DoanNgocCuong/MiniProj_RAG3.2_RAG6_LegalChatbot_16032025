@@ -22,6 +22,7 @@ python -m venv .venv
 REM Kich hoat moi truong ao
 echo Kich hoat moi truong ao...
 call .venv\Scripts\activate.bat
+@REM .\.venv\Scripts\Activate.ps1
 
 REM Cai dat pip moi nhat
 echo Cai dat pip moi nhat...

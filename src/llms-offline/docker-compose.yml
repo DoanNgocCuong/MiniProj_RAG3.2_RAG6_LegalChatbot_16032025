@@ -1,8 +1,10 @@
 version: '3.8'
 
 services:
-  llm-service:
+  llms-offline:
     build: .
+    image: llms-offline:latest
+    container_name: llms-offline
     ports:
       - "8001:8000"
     volumes:
