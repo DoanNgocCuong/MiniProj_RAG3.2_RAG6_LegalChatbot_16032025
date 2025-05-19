@@ -3,6 +3,16 @@ from huggingface_hub import snapshot_download
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
+# Kiểm tra GPU
+print("=== Kiểm tra GPU ===")
+if torch.cuda.is_available():
+    print(f"GPU được phát hiện: {torch.cuda.get_device_name(0)}")
+    print(f"Số lượng GPU: {torch.cuda.device_count()}")
+    print(f"VRAM khả dụng: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+else:
+    print("Không phát hiện GPU, sẽ sử dụng CPU")
+print("==================\n")
+
 def download_repo(repo_id: str, target_dir: str):
     """
     Tải toàn bộ repo model về target_dir thông qua huggingface_hub
@@ -21,13 +31,17 @@ def convert_fp16_and_save(src_dir: str, dst_dir: str):
     """
     Load model full-precision, convert sang FP16 và save
     """
+    # Kiểm tra và chọn device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+    
     print(f"[2/3] Loading model from {src_dir} in FP16 …")
     model = AutoModelForCausalLM.from_pretrained(
         src_dir,
         torch_dtype=torch.float16,
-        low_cpu_mem_usage=True,  # tiết kiệm RAM khi load
-        device_map="auto"  # tự động chọn device phù hợp
-    )
+        low_cpu_mem_usage=True  # tiết kiệm RAM khi load
+    ).to(device)  # Chuyển model lên GPU
+    
     os.makedirs(dst_dir, exist_ok=True)
     print(f"[3/3] Saving FP16 model to {dst_dir} …")
     # đưa model về CPU trước khi save để tránh lỗi

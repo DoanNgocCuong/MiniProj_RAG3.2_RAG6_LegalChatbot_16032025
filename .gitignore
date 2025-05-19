@@ -6,3 +6,21 @@
 
 
 src/embedding-model-offline/model/models--sentence-transformers--paraphrase-multilingual-mpnet-base-v2/
+
+src/llms-offline/model/fp16/generation_config.json
+
+*.safetensors
+
+src/llms-offline/model/fp16/model.safetensors.index.json
+
+src/llms-offline/model/fp16/config.json
+
+src/llms-offline/model/raw/model.safetensors.index.json
+
+src/llms-offline/model/raw/tokenizer_config.json
+
+src/llms-offline/model/raw/tokenizer.json
+
+src/llms-offline/model/raw/models--phamhai--Llama-3.2-3B-Instruct-Frog/refs/
+
+src/llms-offline/model/tokenizer/tokenizer.json
