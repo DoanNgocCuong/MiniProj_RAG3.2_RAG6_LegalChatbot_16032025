@@ -7,7 +7,6 @@ Based on Qdrant Pipeline
 import os
 import asyncio
 import uvicorn
-import aiohttp
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -41,8 +40,6 @@ class Config:
     HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
     EMBEDDINGS_MODEL_NAME = os.getenv("EMBEDDINGS_MODEL_NAME", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "offline")  # "offline" or "huggingface"
-    EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL", "http://localhost:8000")
 
 # API Models
 class Message(BaseModel):
@@ -63,57 +60,6 @@ class ChatResponse(BaseModel):
     choices: List[Dict[str, Any]]
     usage: Dict[str, Any] = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
 
-class EmbeddingProvider:
-    """Interface for different embedding providers"""
-    def __init__(self, provider_type: str = "offline"):
-        self.provider_type = provider_type
-        self.hf_client = None
-        self.offline_url = Config.EMBEDDING_API_URL
-        
-        if provider_type == "huggingface":
-            self.hf_client = InferenceClient(
-                provider="hf-inference",
-                api_key=Config.HUGGINGFACE_API_KEY
-            )
-    
-    async def get_embeddings(self, texts: List[str], batch_size: int = 32) -> List[List[float]]:
-        """Get embeddings from the selected provider"""
-        if self.provider_type == "huggingface":
-            return self._get_hf_embeddings(texts)
-        else:
-            return await self._get_offline_embeddings(texts, batch_size)
-    
-    def _get_hf_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Get embeddings from HuggingFace"""
-        try:
-            embeddings = self.hf_client.feature_extraction(
-                model=Config.EMBEDDINGS_MODEL_NAME,
-                text=texts
-            )
-            return embeddings
-        except Exception as e:
-            logger.error(f"HuggingFace embedding error: {str(e)}")
-            raise
-    
-    async def _get_offline_embeddings(self, texts: List[str], batch_size: int) -> List[List[float]]:
-        """Get embeddings from offline API"""
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.offline_url}/embeddings",
-                    json={
-                        "texts": texts,
-                        "batch_size": batch_size
-                    }
-                ) as response:
-                    if response.status != 200:
-                        raise Exception(f"Offline API error: {await response.text()}")
-                    result = await response.json()
-                    return result["embeddings"]
-        except Exception as e:
-            logger.error(f"Offline embedding error: {str(e)}")
-            raise
-
 # Create FastAPI app
 app = FastAPI(
     title="Legal RAG API",
@@ -131,21 +77,24 @@ app.add_middleware(
 )
 
 # Global variables
-embeddings_provider = None
+embeddings_client = None
 qdrant_client = None
 openai_client = None
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize connections on startup"""
-    global embeddings_provider, qdrant_client, openai_client
+    global embeddings_client, qdrant_client, openai_client
     
     try:
         logger.info("Initializing RAG Backend...")
         
-        # Initialize embedding provider
-        embeddings_provider = EmbeddingProvider(provider_type=Config.EMBEDDING_PROVIDER)
-        logger.info(f"Embedding provider initialized: {Config.EMBEDDING_PROVIDER}")
+        # Initialize embeddings client
+        embeddings_client = InferenceClient(
+            provider="hf-inference",
+            api_key=Config.HUGGINGFACE_API_KEY
+        )
+        logger.info("Embeddings client initialized")
 
         # Initialize Qdrant
         qdrant_client = QdrantClient(
@@ -189,13 +138,16 @@ async def shutdown_event():
     if qdrant_client:
         qdrant_client.close()
 
-async def search_semantic(query: str, top_k: int = 5):
+def search_semantic(query: str, top_k: int = 5):
     """Search for semantically similar documents"""
-    global embeddings_provider, qdrant_client
+    global embeddings_client, qdrant_client
     
     try:
-        # Get embedding from provider
-        query_vector = (await embeddings_provider.get_embeddings([query]))[0]
+        # Create embedding for query using the new client
+        query_vector = embeddings_client.feature_extraction(
+            model=Config.EMBEDDINGS_MODEL_NAME,
+            text=query
+        )
         
         # Search in Qdrant
         search_results = qdrant_client.search(
@@ -261,9 +213,9 @@ async def get_openai_response(messages: List[Dict[str, str]], model: str = "gpt-
 @app.post("/v1/chat/completions", response_model=ChatResponse)
 async def chat_completions(request: ChatRequest):
     """Chat completions endpoint compatible with OpenAI format"""
-    global embeddings_provider, qdrant_client, openai_client
+    global embeddings_client, qdrant_client, openai_client
     
-    if not embeddings_provider or not qdrant_client or not openai_client:
+    if not embeddings_client or not qdrant_client or not openai_client:
         raise HTTPException(status_code=503, detail="Service not initialized")
     
     try:
@@ -298,7 +250,7 @@ async def chat_completions(request: ChatRequest):
         
         # Step 2: Semantic search
         logger.info("Performing semantic search...")
-        search_results = await search_semantic(user_message)
+        search_results = search_semantic(user_message)
         
         if not search_results:
             logger.info("No relevant documents found")
@@ -384,14 +336,13 @@ async def chat_completions(request: ChatRequest):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    global embeddings_provider, qdrant_client, openai_client
+    global embeddings_client, qdrant_client, openai_client
     
     status = {
         "status": "healthy",
-        "embeddings": embeddings_provider is not None,
+        "embeddings": embeddings_client is not None,
         "qdrant": qdrant_client is not None,
-        "openai": openai_client is not None,
-        "embedding_provider": Config.EMBEDDING_PROVIDER
+        "openai": openai_client is not None
     }
     
     if all(status.values()):
