@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  llm-service:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./model:/app/model
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
