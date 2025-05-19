@@ -1,18 +1,21 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
 
-# Đường dẫn tới thư mục chứa model đã tải về
-MODEL_PATH = "../model"
+# Đường dẫn tới thư mục chứa model FP16 và tokenizer
+MODEL_FP16_PATH = "/app/model/fp16"
+TOKENIZER_PATH = "/app/model/tokenizer"
 
 # 1. Load tokenizer
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, use_fast=True)
+tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH, use_fast=True)
 
-# 2. Load model FP16, device_map="auto" sẽ tự chọn GPU nếu có
+# 2. Load model FP16 và chuyển lên GPU nếu có
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device for inference: {device}")
+
 model = AutoModelForCausalLM.from_pretrained(
-    MODEL_PATH,
+    MODEL_FP16_PATH,
     torch_dtype=torch.float16,
-    device_map="auto",
-).eval()
+).to(device).eval()
 
 # 3. Hàm generate
 def generate(

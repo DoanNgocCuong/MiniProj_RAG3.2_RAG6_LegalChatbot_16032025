@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from inference import generate
+from .inference import generate
 
 class Request(BaseModel):
     prompt: str
