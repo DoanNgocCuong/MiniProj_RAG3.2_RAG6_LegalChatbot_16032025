@@ -1,5 +1,5 @@
 # Base image
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 # Thiết lập thư mục làm việc
 WORKDIR /app
@@ -7,13 +7,16 @@ WORKDIR /app
 # Cài đặt các gói phụ thuộc
 RUN apt-get update && apt-get install -y \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Sao chép requirements trước để tận dụng Docker cache
 COPY app/requirements.txt /app/requirements.txt
 
-# Cài đặt các gói Python
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+# Cập nhật pip và cài đặt các gói Python
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir torch==2.1.0 torchvision==0.16.0 && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Sao chép mô hình và mã nguồn
 COPY model/ /app/model/

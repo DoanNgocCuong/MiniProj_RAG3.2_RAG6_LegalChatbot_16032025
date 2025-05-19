@@ -1,0 +1,8 @@
+2025-05-19 13:23:15,469 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-19 13:23:15,478 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-19 13:23:15,478 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-19 13:23:25,292 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-19 13:23:28,860 - embedding-api - INFO - Đã tạo 1 embeddings trong 3566.90ms
+2025-05-19 13:24:32,655 - embedding-api - INFO - Đã tạo 1 embeddings trong 30.41ms
+2025-05-19 13:24:34,193 - embedding-api - INFO - Đã tạo 1 embeddings trong 26.62ms
+2025-05-19 13:24:43,528 - embedding-api - INFO - Đã tạo 1 embeddings trong 31.89ms
