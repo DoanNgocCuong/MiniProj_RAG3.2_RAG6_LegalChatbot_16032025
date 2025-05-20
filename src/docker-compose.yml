@@ -1,79 +1,6 @@
 name: legal-chatbot
 
 services:
-  llms-service:
-    build:
-      context: ./llms-offline
-      dockerfile: Dockerfile
-    image: chatbot-llms-offline:latest
-    container_name: chatbot-llms-offline
-    ports:
-      - "8001:8000"
-    volumes:
-      - ./llms-offline/model:/app/model
-      - ./llms-offline/logs:/app/logs
-    deploy:
-      resources:
-        limits:
-          memory: 12G
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    environment:
-      - PYTHONUNBUFFERED=1
-      - TORCH_CUDA_ARCH_LIST="8.6"
-    networks:
-      - legal-chatbot-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 500s # because it takes time to load the model, 8 minutes
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  embedding-service:
-    build:
-      context: ./embedding-model-offline
-      dockerfile: Dockerfile
-    image: chatbot-embedding-model-offline:latest
-    container_name: chatbot-embedding-model-offline
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./embedding-model-offline/model:/app/model
-      - ./embedding-model-offline/app:/app
-      - ./embedding-model-offline/logs:/app/logs
-    environment:
-      - MODEL_PATH=/app/model
-      - MODEL_NAME=paraphrase-multilingual-mpnet-base-v2
-    restart: unless-stopped
-    networks:
-      - legal-chatbot-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-        reservations:
-          memory: 2G
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
   backend:
     build:
       context: ./back-end
@@ -87,9 +14,6 @@ services:
     restart: unless-stopped
     networks:
       - legal-chatbot-network
-    depends_on:
-      embedding-service:
-      llms-service:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:30000/health"]
       interval: 30s
@@ -101,6 +25,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    depends_on:
+      - embedding-offline-service
 
   frontend:
     build:
@@ -129,7 +55,36 @@ services:
         max-size: "10m"
         max-file: "3"
 
-
+  embedding-offline-service:
+    build:
+      context: ./embedding-model-offline
+      dockerfile: Dockerfile
+    image: embedding-offline-service:latest
+    container_name: embedding-offline-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./embedding-model-offline/model:/app/model
+      - ./embedding-model-offline/app:/app
+      - ./embedding-model-offline/logs:/app/logs
+    environment:
+      - MODEL_PATH=/app/model
+      - MODEL_NAME=paraphrase-multilingual-mpnet-base-v2
+    restart: unless-stopped
+    networks:
+      - legal-chatbot-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
 
 networks:
   legal-chatbot-network:
