@@ -121,7 +121,7 @@ function ChatBot(props) {
                   page: sourceMatch[1].includes("trang") ? 
                     sourceMatch[1].replace(/[^0-9]/g, '') : undefined,
                   title: sourceMatch[1].includes("trang") ? 
-                    "Sổ tay sinh viên 2023" : sourceMatch[1]
+                    "Luật Biển Việt Nam" : sourceMatch[1]
                 },
                 page_content: responseContent
               }];
