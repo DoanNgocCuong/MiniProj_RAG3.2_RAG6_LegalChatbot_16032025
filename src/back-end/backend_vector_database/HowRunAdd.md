@@ -8,3 +8,12 @@
    cd src/back-end
    python backend_vector_database/create_vector_database.py --excel backend_vector_database/dataset/LegalRAG.xlsx
 ```
+
+
+```bash
+cd src/back-end
+
+python backend_vector_database/create_vector_database_QdantLocal.py --excel backend_vector_database/dataset/LegalRAG.xlsx
+```
+
+---
