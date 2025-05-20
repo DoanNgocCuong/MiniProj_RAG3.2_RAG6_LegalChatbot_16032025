@@ -93,3 +93,10 @@
 2025-05-20 08:00:45,090 - embedding-api - INFO - Mô hình đã được tải thành công
 2025-05-20 08:00:49,311 - embedding-api - INFO - Đã tạo 1 embeddings trong 4218.72ms
 2025-05-20 08:02:32,865 - embedding-api - INFO - Đã tạo 1 embeddings trong 41.43ms
+2025-05-20 08:44:56,681 - embedding-api - INFO - Đã tạo 1 embeddings trong 320.60ms
+2025-05-20 08:45:00,369 - embedding-api - INFO - Đã tạo 1 embeddings trong 107.62ms
+2025-05-20 08:45:39,837 - embedding-api - INFO - Đã tạo 1 embeddings trong 129.89ms
+2025-05-20 08:46:49,333 - embedding-api - INFO - Đã tạo 1 embeddings trong 183.15ms
+2025-05-20 08:48:13,145 - embedding-api - INFO - Đã tạo 1 embeddings trong 96.34ms
+2025-05-20 08:48:50,131 - embedding-api - INFO - Đã tạo 1 embeddings trong 46.14ms
+2025-05-20 08:50:34,680 - embedding-api - INFO - Đã tạo 1 embeddings trong 179.09ms
