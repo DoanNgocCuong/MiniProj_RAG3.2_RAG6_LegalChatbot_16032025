@@ -466,6 +466,7 @@ async def chat_completions(request: ChatRequest):
         logger.info("Đang tìm kiếm các tài liệu liên quan...")
         search_results = await search_semantic(user_message)
         
+        # Kiểm tra có kết quả tìm kiếm không
         if not search_results:
             logger.info("✗ KHÔNG TÌM THẤY KẾT QUẢ NGỮ NGHĨA")
             return ChatResponse(
@@ -479,74 +480,82 @@ async def chat_completions(request: ChatRequest):
                     "finish_reason": "stop"
                 }]
             )
-        
-        logger.info(f"✓ Tìm thấy {len(search_results)} kết quả ngữ nghĩa")
-        
-        # Phân tích kết quả
-        context = []
-        for idx, result in enumerate(search_results, 1):
-            score = result.score
-            payload = result.payload
-            content = payload.get("page_content", "")
-            metadata = payload.get("metadata", {})
+        else:
+            logger.info(f"✓ Tìm thấy {len(search_results)} kết quả ngữ nghĩa")
             
-            logger.info(f"\nKết quả #{idx}:")
-            logger.info(f"Score: {score}")
-            logger.info(f"Source: {metadata.get('source', 'Không rõ')}")
-            logger.info(f"Content preview: {content[:100]}...")
-            
-            if score >= 0.85:
-                logger.info("✓ Tìm thấy kết quả có độ tin cậy cao")
-                response_content = (
-                    f"{content}\n\n"
-                    f"(Nguồn: {metadata.get('source', 'Không rõ')})"
+            # Phân tích kết quả
+            context = []
+            for idx, result in enumerate(search_results, 1):
+                score = result.score
+                payload = result.payload
+                content = payload.get("page_content", "")
+                metadata = payload.get("metadata", {})
+                
+                logger.info(f"\nKết quả #{idx}:")
+                logger.info(f"Score: {score}")
+                logger.info(f"Source: {metadata.get('source', 'Không rõ')}")
+                logger.info(f"Content preview: {content[:100]}...")
+                
+                # Kiểm tra độ tin cậy của kết quả
+                if score >= 0.7:  # Ngưỡng tin cậy
+                    context.append(content)
+                    logger.info("✓ Thêm vào context cho LLM")
+                else:
+                    logger.info("✗ Kết quả không đạt ngưỡng tin cậy")
+
+            # Kiểm tra có đủ context không
+            if not context:
+                logger.info("✗ Không có kết quả nào đạt ngưỡng tin cậy")
+                return ChatResponse(
+                    model=request.model,
+                    choices=[{
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": "Xin lỗi, tôi không tìm thấy thông tin đủ tin cậy để trả lời câu hỏi của bạn."
+                        },
+                        "finish_reason": "stop"
+                    }]
+                )
+            else:
+                # BƯỚC 3: SỬ DỤNG LLM
+                logger.info("-"*30)
+                logger.info("BƯỚC 3: SỬ DỤNG LLM")
+                logger.info(f"Số lượng context đã thu thập: {len(context)}")
+                logger.info("Đang gọi LLM để tổng hợp câu trả lời...")
+                
+                # Tạo prompt cho LLM
+                system_content = (
+                    "You are a Vietnamese Maritime Law AI assistant. "
+                    "Answer based ONLY on the provided context:\n\n"
+                    "RULES:\n"
+                    "- Use ONLY information from the context\n"
+                    "- Keep answers concise and focused\n"
+                    "- Cite legal references when available\n"
+                    "- If information is insufficient, state: 'Based on the provided context, I cannot give a complete answer'\n\n"
+                    "CONTEXT:\n" + 
+                    "\n\n".join(context) +
+                    "\n\nFORMAT YOUR RESPONSE AS FOLLOWS:\n"
+                    "1. Answer: [Direct answer from context]\n"
                 )
                 
-                context.append(content)
-                logger.info("✓ Thêm vào context cho LLM")
-        
-        # BƯỚC 3: SỬ DỤNG LLM
-        if context:
-            logger.info("-"*30)
-            logger.info("BƯỚC 3: SỬ DỤNG LLM")
-            logger.info(f"Số lượng context đã thu thập: {len(context)}")
-            logger.info("Đang gọi LLM để tổng hợp câu trả lời...")
-            system_content = (
-                "You are a Vietnamese Maritime Law AI assistant. "
-                "Answer based ONLY on the provided context:\n\n"
-                "RULES:\n"
-                "- Use ONLY information from the context\n"
-                "- Keep answers concise and focused\n"
-                "- Cite legal references when available\n"
-                "- If information is insufficient, state: 'Based on the provided context, I cannot give a complete answer'\n\n"
-                "CONTEXT:\n" + 
-                "\n\n".join(context) +  # Thêm dấu + ở đây
-                "\n\nFORMAT YOUR RESPONSE AS FOLLOWS:\n"
-                "1. Answer: [Direct answer from context]\n"
-            )
-            
-            messages = [
-                {"role": "system", "content": system_content},
-                {"role": "user", "content": user_message}
-            ]
-            
-            response = await llm_provider.get_completion(
-                messages=messages,
-                model=request.model,
-                temperature=request.temperature
-            )
-            
-            return ChatResponse(
-                model=response["model"],
-                choices=response["choices"],
-                usage=response["usage"]
-            )
-        else:
-            logger.info("✗ Không đủ context để gọi LLM")
-        
-        logger.info("="*50)
-        logger.info("KẾT THÚC XỬ LÝ CÂU HỎI")
-        logger.info("="*50)
+                # Gọi LLM
+                messages = [
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": user_message}
+                ]
+                
+                response = await llm_provider.get_completion(
+                    messages=messages,
+                    model=request.model,
+                    temperature=request.temperature
+                )
+                
+                return ChatResponse(
+                    model=response["model"],
+                    choices=response["choices"],
+                    usage=response["usage"]
+                )
         
     except Exception as e:
         logger.error(f"❌ LỖI: {str(e)}")
