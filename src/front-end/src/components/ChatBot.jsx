@@ -35,9 +35,9 @@ function ChatBot(props) {
   const [activeChatId, setActiveChatId] = useState('current');
 
   const commonQuestions = [
-    "Trình bày khái niệm, chế độ pháp lý vùng nội thủy theo UNCLOS 1982? Liên hệ vùng nội thủy theo luật biển Việt Nam?",
+    "Trình bày khái niệm, chế độ pháp lý vùng Đặc quyền kinh tế theo Luật biển Việt Nam?",
     "Trình bày những quy định cấm trong vùng đặc quyền kinh tế, thềm lục địa và quyền truy đuổi tàu thuyền nước ngoài theo luật biển Việt Nam?",
-    "Trình bày khái niệm, chế độ pháp lý biển theo UNCLOS 1982?",
+    "Đồng chí Trình bày khái niệm, chế độ pháp lý biển theo UNCLOS 1982?",
   ];
 
   //  Sử dụng: isLoading để: Tự động cuộn xuống dưới khi có tin nhắn mới: ?
@@ -97,9 +97,8 @@ function ChatBot(props) {
         },
         body: JSON.stringify({
           messages: [
-            {"role": "user", "content": `[Nguồn: ${sourceData}] ${promptInput}`}
-          ],
-          model: "gpt-4o-mini"
+            {"role": "user", "content": promptInput}
+          ]
         })
       })
         .then((response) => {
