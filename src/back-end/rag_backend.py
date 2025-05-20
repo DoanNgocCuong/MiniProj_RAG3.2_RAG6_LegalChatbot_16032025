@@ -43,6 +43,20 @@ class Config:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     EMBEDDING_PROVIDER = os.getenv("EMBEDDING_PROVIDER", "offline")  # "offline" or "huggingface"
     EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL", "http://embedding-offline-service:8000")
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai")  # "openai" or "local"
+    LOCAL_LLM_API_URL = os.getenv("LOCAL_LLM_API_URL", "http://localhost:8001")
+
+    @classmethod
+    def log_config(cls):
+        """Log current configuration"""
+        logger.info("Current configuration:")
+        logger.info(f"LLM_PROVIDER: {cls.LLM_PROVIDER}")
+        logger.info(f"EMBEDDING_PROVIDER: {cls.EMBEDDING_PROVIDER}")
+        logger.info(f"EMBEDDING_API_URL: {cls.EMBEDDING_API_URL}")
+        logger.info(f"LOCAL_LLM_API_URL: {cls.LOCAL_LLM_API_URL}")
+
+# Log configuration on startup
+Config.log_config()
 
 # API Models
 class Message(BaseModel):
@@ -114,6 +128,113 @@ class EmbeddingProvider:
             logger.error(f"Offline embedding error: {str(e)}")
             raise
 
+class LLMProvider:
+    def __init__(self, provider_type: str = "openai"):
+        self.provider_type = provider_type
+        self.openai_client = None
+        self.local_url = Config.LOCAL_LLM_API_URL
+        
+        if provider_type == "openai":
+            self.openai_client = OpenAI(api_key=Config.OPENAI_API_KEY)
+    
+    async def get_completion(self, messages: List[Dict[str, str]], 
+                           model: str = "gpt-3.5-turbo",
+                           temperature: float = 0.7) -> Dict:
+        if self.provider_type == "openai":
+            return await self._get_openai_completion(messages, model, temperature)
+        else:
+            return await self._get_llama_completion(messages, temperature)
+    
+    async def _get_openai_completion(self, messages: List[Dict[str, str]], 
+                                   model: str = "gpt-3.5-turbo",
+                                   temperature: float = 0.7) -> Dict:
+        try:
+            response = self.openai_client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=2048
+            )
+            return {
+                "model": response.model,
+                "choices": [{
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": response.choices[0].message.content
+                    },
+                    "finish_reason": response.choices[0].finish_reason
+                }],
+                "usage": response.usage.model_dump() if hasattr(response, 'usage') else {
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0
+                }
+            }
+        except Exception as e:
+            logger.error(f"OpenAI error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"OpenAI error: {str(e)}")
+    
+    async def _get_llama_completion(self, messages: List[Dict[str, str]], 
+                                  temperature: float = 0.7) -> Dict:
+        try:
+            # Chuyển đổi messages thành prompt
+            prompt = self._convert_messages_to_prompt(messages)
+            
+            # Gọi Llama API
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{self.local_url}/v1/generate",
+                    json={
+                        "prompt": prompt,
+                        "max_tokens": 2048,
+                        "temperature": temperature,
+                        "top_p": 0.9,
+                        "do_sample": True
+                    }
+                ) as response:
+                    if response.status != 200:
+                        raise Exception(f"Llama API error: {await response.text()}")
+                    result = await response.json()
+                    return self._format_llama_response(result)
+        except Exception as e:
+            logger.error(f"Llama API error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Llama API error: {str(e)}")
+    
+    def _convert_messages_to_prompt(self, messages: List[Dict[str, str]]) -> str:
+        """Chuyển đổi messages thành prompt cho Llama"""
+        prompt = ""
+        for msg in messages:
+            role = msg["role"]
+            content = msg["content"]
+            if role == "system":
+                prompt += f"System: {content}\n"
+            elif role == "user":
+                prompt += f"User: {content}\n"
+            elif role == "assistant":
+                prompt += f"Assistant: {content}\n"
+        prompt += "Assistant: "
+        return prompt
+    
+    def _format_llama_response(self, result: Dict) -> Dict:
+        """Format Llama response thành format tương tự OpenAI"""
+        return {
+            "model": "llama-3.2-3b-instruct-frog",
+            "choices": [{
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": result["text"]
+                },
+                "finish_reason": "stop"
+            }],
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0
+            }
+        }
+
 # Create FastAPI app
 app = FastAPI(
     title="Legal RAG API",
@@ -133,12 +254,12 @@ app.add_middleware(
 # Global variables
 embeddings_provider = None
 qdrant_client = None
-openai_client = None
+llm_provider = None
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize connections on startup"""
-    global embeddings_provider, qdrant_client, openai_client
+    global embeddings_provider, qdrant_client, llm_provider
     
     try:
         logger.info("Initializing RAG Backend...")
@@ -155,28 +276,16 @@ async def startup_event():
         )
         logger.info("Qdrant client initialized")
 
+        # Initialize LLM provider
+        llm_provider = LLMProvider(provider_type=Config.LLM_PROVIDER)
+        logger.info(f"LLM provider initialized: {Config.LLM_PROVIDER}")
+
         # Verify collection
         collection_info = qdrant_client.get_collection(
             collection_name=Config.QDRANT_COLLECTION
         )
         logger.info(f"Connected to collection: {Config.QDRANT_COLLECTION}")
         logger.info(f"Vector size: {collection_info.config.params.vectors.size}")
-
-        # Initialize OpenAI
-        openai_client = OpenAI(api_key=Config.OPENAI_API_KEY)
-        logger.info("OpenAI client initialized")
-
-        # Check sample point
-        points = qdrant_client.scroll(
-            collection_name=Config.QDRANT_COLLECTION,
-            limit=1,
-            with_payload=True
-        )
-        if points and len(points[0]) > 0:
-            first_point = points[0][0]
-            logger.info("Sample point structure:")
-            logger.info(f"Point ID: {first_point.id}")
-            logger.info(f"Payload: {first_point.payload}")
             
     except Exception as e:
         logger.error(f"Startup error: {str(e)}")
@@ -261,9 +370,9 @@ async def get_openai_response(messages: List[Dict[str, str]], model: str = "gpt-
 @app.post("/v1/chat/completions", response_model=ChatResponse)
 async def chat_completions(request: ChatRequest):
     """Chat completions endpoint compatible with OpenAI format"""
-    global embeddings_provider, qdrant_client, openai_client
+    global embeddings_provider, qdrant_client, llm_provider
     
-    if not embeddings_provider or not qdrant_client or not openai_client:
+    if not embeddings_provider or not qdrant_client or not llm_provider:
         raise HTTPException(status_code=503, detail="Service not initialized")
     
     try:
@@ -345,8 +454,8 @@ async def chat_completions(request: ChatRequest):
             if score > 0.5:
                 context.append(content)
         
-        # Step 3: Use OpenAI with context
-        logger.info("Using OpenAI with context...")
+        # Step 3: Use LLM with context
+        logger.info("Using LLM with context...")
         system_content = (
             "Bạn là trợ lý AI giúp trả lời các câu hỏi về luật giao thông. "
             "Hãy sử dụng thông tin sau để trả lời:\n\n" + 
@@ -358,23 +467,16 @@ async def chat_completions(request: ChatRequest):
             {"role": "user", "content": user_message}
         ]
         
-        openai_response = await get_openai_response(
+        response = await llm_provider.get_completion(
             messages=messages,
             model=request.model,
             temperature=request.temperature
         )
         
         return ChatResponse(
-            model=openai_response.model,
-            choices=[{
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": openai_response.choices[0].message.content
-                },
-                "finish_reason": openai_response.choices[0].finish_reason
-            }],
-            usage=openai_response.usage.model_dump() if hasattr(openai_response, 'usage') else {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+            model=response["model"],
+            choices=response["choices"],
+            usage=response["usage"]
         )
         
     except Exception as e:

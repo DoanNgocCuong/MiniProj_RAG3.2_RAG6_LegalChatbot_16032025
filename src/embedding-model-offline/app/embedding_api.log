@@ -63,3 +63,27 @@
 2025-05-20 05:14:23,693 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
 2025-05-20 05:14:29,286 - embedding-api - INFO - Mô hình đã được tải thành công
 2025-05-20 05:14:33,525 - embedding-api - INFO - Đã tạo 1 embeddings trong 4237.95ms
+2025-05-20 06:49:28,638 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-20 06:49:28,645 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-20 06:49:28,646 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-20 06:49:34,410 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-20 06:49:38,715 - embedding-api - INFO - Đã tạo 1 embeddings trong 4303.54ms
+2025-05-20 06:53:12,600 - embedding-api - INFO - Đã tạo 1 embeddings trong 192.48ms
+2025-05-20 06:53:41,699 - embedding-api - INFO - Đã tạo 1 embeddings trong 57.75ms
+2025-05-20 07:41:34,946 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-20 07:41:34,955 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-20 07:41:34,956 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-20 07:41:40,319 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-20 07:41:44,429 - embedding-api - INFO - Đã tạo 1 embeddings trong 4108.54ms
+2025-05-20 07:42:11,556 - embedding-api - INFO - Đã tạo 1 embeddings trong 89.37ms
+2025-05-20 07:42:22,460 - embedding-api - INFO - Đã tạo 1 embeddings trong 195.08ms
+2025-05-20 07:47:09,909 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-20 07:47:09,918 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-20 07:47:09,918 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-20 07:47:19,143 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-20 07:47:23,453 - embedding-api - INFO - Đã tạo 1 embeddings trong 4308.08ms
+2025-05-20 07:54:26,968 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-20 07:54:26,975 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-20 07:54:26,975 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-20 07:54:32,371 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-20 07:54:36,474 - embedding-api - INFO - Đã tạo 1 embeddings trong 4101.37ms

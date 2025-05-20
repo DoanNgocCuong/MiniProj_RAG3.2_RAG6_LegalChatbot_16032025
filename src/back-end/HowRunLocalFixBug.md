@@ -1,4 +1,8 @@
 ```bash
+.venv/Scripts/activate
+```
+
+```bash
 uvicorn rag_backend:app --host 0.0.0.0 --port 30002 --reload --log-level debug
 ```
 ```bash
