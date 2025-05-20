@@ -333,20 +333,24 @@ async def search_semantic(query: str, top_k: int = 5):
         raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
 
 def search_exact(query: str):
-    """Search for exact match in questions"""
+    """Search for fuzzy match in questions with 85% similarity threshold"""
     global qdrant_client
     
     try:
         logger.info("-"*30)
-        logger.info("CHI TIẾT TÌM KIẾM CHÍNH XÁC:")
+        logger.info("CHI TIẾT TÌM KIẾM TỪ NGỮ:")
         logger.info(f"Câu hỏi cần tìm: '{query}'")
         
-        # Create filter for exact match
+        # Create filter for fuzzy match with 85% threshold
         scroll_filter = models.Filter(
             must=[
                 models.FieldCondition(
                     key="metadata.question",
-                    match=models.MatchValue(value=query)
+                    match=models.MatchValue(value=query) # ngưỡng 100%
+                    # match=models.MatchText(
+                    #     text=query,
+                    #     similarity=0.85  # Ngưỡng khớp 85%
+                    # )
                 )
             ]
         )
@@ -354,6 +358,7 @@ def search_exact(query: str):
         logger.info("Filter được tạo:")
         logger.info(f"Field: metadata.question")
         logger.info(f"Value cần match: {query}")
+        logger.info(f"Ngưỡng khớp: 85%")
         
         # Search in Qdrant
         logger.info("Đang gọi Qdrant API...")
@@ -373,7 +378,7 @@ def search_exact(query: str):
             logger.info(f"Content: {first_point.payload.get('page_content', '')[:100]}...")
             return first_point
         else:
-            logger.info("✗ Không tìm thấy kết quả trong DB")
+            logger.info("✗ Không tìm thấy kết quả khớp 85% trong DB")
             # Thêm log để kiểm tra dữ liệu trong DB
             logger.info("Kiểm tra dữ liệu mẫu trong DB:")
             sample_points = qdrant_client.scroll(
@@ -390,7 +395,7 @@ def search_exact(query: str):
             return None
             
     except Exception as e:
-        logger.error(f"❌ Lỗi khi tìm kiếm chính xác: {str(e)}")
+        logger.error(f"❌ Lỗi khi tìm kiếm từ ngữ: {str(e)}")
         return None
 
 async def get_openai_response(messages: List[Dict[str, str]], model: str = "gpt-3.5-turbo", temperature: float = 0.7):
@@ -497,19 +502,6 @@ async def chat_completions(request: ChatRequest):
                     f"(Nguồn: {metadata.get('source', 'Không rõ')})"
                 )
                 
-                return ChatResponse(
-                    model=request.model,
-                    choices=[{
-                        "index": 0,
-                        "message": {
-                            "role": "assistant",
-                            "content": response_content
-                        },
-                        "finish_reason": "stop"
-                    }]
-                )
-            
-            if score > 0.5:
                 context.append(content)
                 logger.info("✓ Thêm vào context cho LLM")
         
@@ -520,9 +512,17 @@ async def chat_completions(request: ChatRequest):
             logger.info(f"Số lượng context đã thu thập: {len(context)}")
             logger.info("Đang gọi LLM để tổng hợp câu trả lời...")
             system_content = (
-                "Bạn là trợ lý AI giúp trả lời các câu hỏi về luật giao thông. "
-                "Hãy sử dụng thông tin sau để trả lời:\n\n" + 
-                "\n\n".join(context)
+                "You are a Vietnamese Maritime Law AI assistant. "
+                "Answer based ONLY on the provided context:\n\n"
+                "RULES:\n"
+                "- Use ONLY information from the context\n"
+                "- Keep answers concise and focused\n"
+                "- Cite legal references when available\n"
+                "- If information is insufficient, state: 'Based on the provided context, I cannot give a complete answer'\n\n"
+                "CONTEXT:\n" + 
+                "\n\n".join(context) +  # Thêm dấu + ở đây
+                "\n\nFORMAT YOUR RESPONSE AS FOLLOWS:\n"
+                "1. Answer: [Direct answer from context]\n"
             )
             
             messages = [

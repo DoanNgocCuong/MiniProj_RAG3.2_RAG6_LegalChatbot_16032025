@@ -148,3 +148,21 @@
 2025-05-20 15:34:57,090 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
 2025-05-20 15:35:09,570 - embedding-api - INFO - Mô hình đã được tải thành công
 2025-05-20 15:35:13,766 - embedding-api - INFO - Đã tạo 1 embeddings trong 4195.09ms
+2025-05-20 15:58:36,979 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-20 15:58:36,987 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-20 15:58:36,987 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-20 15:58:44,879 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-20 15:58:49,049 - embedding-api - INFO - Đã tạo 1 embeddings trong 4167.60ms
+2025-05-20 15:59:00,930 - embedding-api - INFO - Đã tạo 1 embeddings trong 221.34ms
+2025-05-20 16:08:10,876 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-20 16:08:10,882 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-20 16:08:10,882 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-20 16:08:19,214 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-20 16:08:23,516 - embedding-api - INFO - Đã tạo 1 embeddings trong 4300.27ms
+2025-05-20 16:12:58,215 - embedding-api - INFO - Đã tạo 1 embeddings trong 81.45ms
+2025-05-20 16:21:20,550 - embedding-api - INFO - Đang tải mô hình paraphrase-multilingual-mpnet-base-v2 từ /app/model
+2025-05-20 16:21:20,557 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-05-20 16:21:20,557 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: paraphrase-multilingual-mpnet-base-v2
+2025-05-20 16:21:25,986 - embedding-api - INFO - Mô hình đã được tải thành công
+2025-05-20 16:21:30,012 - embedding-api - INFO - Đã tạo 1 embeddings trong 4024.32ms
+2025-05-20 16:23:53,219 - embedding-api - INFO - Đã tạo 1 embeddings trong 67.04ms

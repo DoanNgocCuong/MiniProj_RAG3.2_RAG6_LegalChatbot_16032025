@@ -293,7 +293,7 @@ function ChatBot(props) {
                             >
                               {dataMessages[1][2] == "wiki"
                                 ? source.metadata.title
-                                : source.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " +
+                                : source.metadata.page==undefined? "Luật biển Việt Nam" : "Trang " +
                                   source.metadata.page +
                                   " (sổ tay SV)"}
                             </label>
