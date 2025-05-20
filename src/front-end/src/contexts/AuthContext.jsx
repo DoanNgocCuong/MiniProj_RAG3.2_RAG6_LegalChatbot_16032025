@@ -36,12 +36,30 @@ export const AuthProvider = ({ children }) => {
     },
     signIn: async (data) => {
       console.log('AuthProvider: Signing in...', data)
+      // 1. Đăng nhập (signIn): Nếu nhập đúng email bypass@gmail.com và password bypass thì bypass, còn lại dùng Supabase.
+      if (data.email === 'bypass@gmail.com' && data.password === 'bypass') {
+        const mockUser = {
+          id: 'bypass-user-id',
+          email: 'bypass@gmail.com',
+          user_metadata: {},
+          app_metadata: {},
+          aud: 'authenticated',
+          role: 'authenticated'
+        }
+        setUser(mockUser)
+        return { data: { user: mockUser, session: { user: mockUser } }, error: null }
+      }
       const result = await supabase.auth.signInWithPassword(data)
       console.log('AuthProvider: Sign in result:', result)
       return result
     },
     signOut: async () => {
-      console.log('AuthProvider: Signing out...')
+      // 2. Đăng xuất (signOut): Nếu user hiện tại là bypass@gmail.com thì chỉ xóa local, không gọi Supabase
+      if (user && user.email === 'bypass@gmail.com') {
+        setUser(null)
+        return { error: null }
+      }
+      // Ngược lại, dùng Supabase như bình thường
       const result = await supabase.auth.signOut()
       console.log('AuthProvider: Sign out result:', result)
       return result
