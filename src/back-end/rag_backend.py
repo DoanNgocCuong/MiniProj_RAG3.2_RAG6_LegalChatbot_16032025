@@ -35,8 +35,8 @@ load_dotenv()
 
 # Configuration
 class Config:
-    QDRANT_URL = os.getenv("QDRANT_URL")
-    QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
+    QDRANT_URL = "http://host.docker.internal:6333"
+    QDRANT_API_KEY = "my_super_secret_key"
     QDRANT_COLLECTION = os.getenv("COLLECTION_NAME", "legal_rag")
     HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
     EMBEDDINGS_MODEL_NAME = os.getenv("EMBEDDINGS_MODEL_NAME", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
@@ -274,7 +274,7 @@ async def startup_event():
             api_key=Config.QDRANT_API_KEY,
             timeout=10
         )
-        logger.info("Qdrant client initialized")
+        logger.info(f"Qdrant client initialized (local): {Config.QDRANT_URL}")
 
         # Initialize LLM provider
         llm_provider = LLMProvider(provider_type=Config.LLM_PROVIDER)
