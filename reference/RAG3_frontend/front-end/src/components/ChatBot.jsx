@@ -105,7 +105,7 @@ function ChatBot(props) {
       title:
         sourceType == "wiki"
           ? sources.metadata.title
-          : sources.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " + sources.metadata.page + " (sổ tay SV)",
+          : sources.metadata.page==undefined? "Luật biển Việt Nam" : "Trang " + sources.metadata.page + " (sổ tay SV)",
       source: sourceType == "wiki" ? "Wikipedia" : "Trường Cao Đẳng Kỹ thuật Hải Quân",
       url:
         sourceType == "wiki"
@@ -279,7 +279,7 @@ function ChatBot(props) {
                           >
                             {dataMessages[1][2] == "wiki"
                               ? source.metadata.title
-                              : source.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " +
+                              : source.metadata.page==undefined? "Luật biển Việt Nam" : "Trang " +
                                 source.metadata.page +
                                 " (sổ tay SV)"}
                           </label>

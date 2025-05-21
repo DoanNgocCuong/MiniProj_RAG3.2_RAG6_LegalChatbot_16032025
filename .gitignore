@@ -24,3 +24,5 @@ src/llms-offline/model/raw/tokenizer.json
 src/llms-offline/model/raw/models--phamhai--Llama-3.2-3B-Instruct-Frog/refs/
 
 src/llms-offline/model/tokenizer/tokenizer.json
+
+DB/qdrant_data/collections/legal_rag/0/segments/

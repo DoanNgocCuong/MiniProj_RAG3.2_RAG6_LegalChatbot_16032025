@@ -121,7 +121,7 @@ function ChatBot(props) {
                   page: sourceMatch[1].includes("trang") ? 
                     sourceMatch[1].replace(/[^0-9]/g, '') : undefined,
                   title: sourceMatch[1].includes("trang") ? 
-                    "Sổ tay sinh viên 2023" : sourceMatch[1]
+                    "Luật Biển Việt Nam" : sourceMatch[1]
                 },
                 page_content: responseContent
               }];
@@ -293,7 +293,7 @@ function ChatBot(props) {
                             >
                               {dataMessages[1][2] == "wiki"
                                 ? source.metadata.title
-                                : source.metadata.page==undefined? "Sổ tay sinh viên 2023" : "Trang " +
+                                : source.metadata.page==undefined? "Luật biển Việt Nam" : "Trang " +
                                   source.metadata.page +
                                   " (sổ tay SV)"}
                             </label>

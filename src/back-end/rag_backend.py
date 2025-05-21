@@ -286,6 +286,18 @@ async def startup_event():
         )
         logger.info(f"Connected to collection: {Config.QDRANT_COLLECTION}")
         logger.info(f"Vector size: {collection_info.config.params.vectors.size}")
+        
+        # Thêm code debug
+        points = qdrant_client.scroll(
+            collection_name=Config.QDRANT_COLLECTION,
+            limit=1,
+            with_payload=True
+        )
+        if points and len(points[0]) > 0:
+            first_point = points[0][0]
+            logger.info("Cấu trúc dữ liệu mẫu:")
+            logger.info(f"ID: {first_point.id}")
+            logger.info(f"Payload: {first_point.payload}")
             
     except Exception as e:
         logger.error(f"Startup error: {str(e)}")
@@ -321,21 +333,35 @@ async def search_semantic(query: str, top_k: int = 5):
         raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
 
 def search_exact(query: str):
-    """Search for exact match in questions"""
+    """Search for fuzzy match in questions with 85% similarity threshold"""
     global qdrant_client
     
     try:
-        # Create filter for exact match
+        logger.info("-"*30)
+        logger.info("CHI TIẾT TÌM KIẾM TỪ NGỮ:")
+        logger.info(f"Câu hỏi cần tìm: '{query}'")
+        
+        # Create filter for fuzzy match with 85% threshold
         scroll_filter = models.Filter(
             must=[
                 models.FieldCondition(
                     key="metadata.question",
-                    match=models.MatchValue(value=query)
+                    match=models.MatchValue(value=query) # ngưỡng 100%
+                    # match=models.MatchText(
+                    #     text=query,
+                    #     similarity=0.85  # Ngưỡng khớp 85%
+                    # )
                 )
             ]
         )
         
+        logger.info("Filter được tạo:")
+        logger.info(f"Field: metadata.question")
+        logger.info(f"Value cần match: {query}")
+        logger.info(f"Ngưỡng khớp: 85%")
+        
         # Search in Qdrant
+        logger.info("Đang gọi Qdrant API...")
         scroll_results = qdrant_client.scroll(
             collection_name=Config.QDRANT_COLLECTION,
             scroll_filter=scroll_filter,
@@ -343,12 +369,33 @@ def search_exact(query: str):
             with_payload=True
         )
         
+        # Log chi tiết kết quả
         if scroll_results and len(scroll_results[0]) > 0:
-            return scroll_results[0][0]
-        return None
+            first_point = scroll_results[0][0]
+            logger.info("✓ Tìm thấy kết quả trong DB:")
+            logger.info(f"ID: {first_point.id}")
+            logger.info(f"Question trong DB: {first_point.payload.get('metadata', {}).get('question', '')}")
+            logger.info(f"Content: {first_point.payload.get('page_content', '')[:100]}...")
+            return first_point
+        else:
+            logger.info("✗ Không tìm thấy kết quả khớp 85% trong DB")
+            # Thêm log để kiểm tra dữ liệu trong DB
+            logger.info("Kiểm tra dữ liệu mẫu trong DB:")
+            sample_points = qdrant_client.scroll(
+                collection_name=Config.QDRANT_COLLECTION,
+                limit=5,  # Lấy 5 điểm dữ liệu mẫu
+                with_payload=True
+            )
+            if sample_points and len(sample_points[0]) > 0:
+                logger.info("Dữ liệu mẫu trong DB:")
+                for idx, point in enumerate(sample_points[0], 1):
+                    logger.info(f"\nMẫu #{idx}:")
+                    logger.info(f"Question: {point.payload.get('metadata', {}).get('question', '')}")
+                    logger.info(f"Content: {point.payload.get('page_content', '')[:100]}...")
+            return None
+            
     except Exception as e:
-        logger.error(f"Exact search error: {str(e)}")
-        # Don't raise exception, just return None
+        logger.error(f"❌ Lỗi khi tìm kiếm từ ngữ: {str(e)}")
         return None
 
 async def get_openai_response(messages: List[Dict[str, str]], model: str = "gpt-3.5-turbo", temperature: float = 0.7):
@@ -376,21 +423,27 @@ async def chat_completions(request: ChatRequest):
         raise HTTPException(status_code=503, detail="Service not initialized")
     
     try:
-        # Get the user's message
         user_message = request.messages[-1].content
-        logger.info(f"Processing query: {user_message}")
+        logger.info("="*50)
+        logger.info(f"BẮT ĐẦU XỬ LÝ CÂU HỎI: {user_message}")
+        logger.info("="*50)
         
-        # Step 1: Try exact match
-        logger.info("Trying exact match...")
+        # BƯỚC 1: KIỂM TRA KHỚP CHÍNH XÁC
+        logger.info("-"*30)
+        logger.info("BƯỚC 1: KIỂM TRA KHỚP CHÍNH XÁC")
+        logger.info(f"Đang tìm kiếm câu hỏi giống hệt: '{user_message}'")
         exact_match = search_exact(user_message)
+        
         if exact_match:
-            logger.info("Found exact match")
-            content = exact_match.payload.get('page_content', '')
-            metadata = exact_match.payload.get('metadata', {})
+            logger.info("✓ TÌM THẤY KHỚP CHÍNH XÁC")
+            logger.info(f"ID: {exact_match.id}")
+            logger.info(f"Score: {exact_match.score if hasattr(exact_match, 'score') else 'N/A'}")
+            logger.info(f"Content: {exact_match.payload.get('page_content', '')[:100]}...")
+            logger.info(f"Metadata: {exact_match.payload.get('metadata', {})}")
             
             response_content = (
-                f"{content}\n\n"
-                f"(Nguồn: {metadata.get('source', 'Không rõ')})"
+                f"{exact_match.payload.get('page_content', '')}\n\n"
+                f"(Nguồn: {exact_match.payload.get('metadata', {}).get('source', 'Không rõ')})"
             )
             
             return ChatResponse(
@@ -404,13 +457,18 @@ async def chat_completions(request: ChatRequest):
                     "finish_reason": "stop"
                 }]
             )
+        else:
+            logger.info("✗ KHÔNG TÌM THẤY KHỚP CHÍNH XÁC")
         
-        # Step 2: Semantic search
-        logger.info("Performing semantic search...")
+        # BƯỚC 2: TÌM KIẾM NGỮ NGHĨA
+        logger.info("-"*30)
+        logger.info("BƯỚC 2: TÌM KIẾM NGỮ NGHĨA")
+        logger.info("Đang tìm kiếm các tài liệu liên quan...")
         search_results = await search_semantic(user_message)
         
+        # Kiểm tra có kết quả tìm kiếm không
         if not search_results:
-            logger.info("No relevant documents found")
+            logger.info("✗ KHÔNG TÌM THẤY KẾT QUẢ NGỮ NGHĨA")
             return ChatResponse(
                 model=request.model,
                 choices=[{
@@ -422,65 +480,85 @@ async def chat_completions(request: ChatRequest):
                     "finish_reason": "stop"
                 }]
             )
-        
-        # Extract context from search results
-        context = []
-        for result in search_results:
-            score = result.score
-            payload = result.payload
-            content = payload.get("page_content", "")
-            metadata = payload.get("metadata", {})
+        else:
+            logger.info(f"✓ Tìm thấy {len(search_results)} kết quả ngữ nghĩa")
             
-            # For high confidence results, return directly
-            if score >= 0.85:
-                logger.info(f"High confidence match found (score: {score})")
-                response_content = (
-                    f"{content}\n\n"
-                    f"(Nguồn: {metadata.get('source', 'Không rõ')})"
-                )
+            # Phân tích kết quả
+            context = []
+            for idx, result in enumerate(search_results, 1):
+                score = result.score
+                payload = result.payload
+                content = payload.get("page_content", "")
+                metadata = payload.get("metadata", {})
                 
+                logger.info(f"\nKết quả #{idx}:")
+                logger.info(f"Score: {score}")
+                logger.info(f"Source: {metadata.get('source', 'Không rõ')}")
+                logger.info(f"Content preview: {content[:100]}...")
+                
+                # Kiểm tra độ tin cậy của kết quả
+                if score >= 0.7:  # Ngưỡng tin cậy
+                    context.append(content)
+                    logger.info("✓ Thêm vào context cho LLM")
+                else:
+                    logger.info("✗ Kết quả không đạt ngưỡng tin cậy")
+
+            # Kiểm tra có đủ context không
+            if not context:
+                logger.info("✗ Không có kết quả nào đạt ngưỡng tin cậy")
                 return ChatResponse(
                     model=request.model,
                     choices=[{
                         "index": 0,
                         "message": {
                             "role": "assistant",
-                            "content": response_content
+                            "content": "Xin lỗi, tôi không tìm thấy thông tin đủ tin cậy để trả lời câu hỏi của bạn."
                         },
                         "finish_reason": "stop"
                     }]
                 )
-            
-            if score > 0.5:
-                context.append(content)
-        
-        # Step 3: Use LLM with context
-        logger.info("Using LLM with context...")
-        system_content = (
-            "Bạn là trợ lý AI giúp trả lời các câu hỏi về luật giao thông. "
-            "Hãy sử dụng thông tin sau để trả lời:\n\n" + 
-            "\n\n".join(context)
-        )
-        
-        messages = [
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": user_message}
-        ]
-        
-        response = await llm_provider.get_completion(
-            messages=messages,
-            model=request.model,
-            temperature=request.temperature
-        )
-        
-        return ChatResponse(
-            model=response["model"],
-            choices=response["choices"],
-            usage=response["usage"]
-        )
+            else:
+                # BƯỚC 3: SỬ DỤNG LLM
+                logger.info("-"*30)
+                logger.info("BƯỚC 3: SỬ DỤNG LLM")
+                logger.info(f"Số lượng context đã thu thập: {len(context)}")
+                logger.info("Đang gọi LLM để tổng hợp câu trả lời...")
+                
+                # Tạo prompt cho LLM
+                system_content = (
+                    "You are a Vietnamese Maritime Law AI assistant. "
+                    "Answer based ONLY on the provided context:\n\n"
+                    "RULES:\n"
+                    "- Use ONLY information from the context\n"
+                    "- Keep answers concise and focused\n"
+                    "- Cite legal references when available\n"
+                    "- If information is insufficient, state: 'Based on the provided context, I cannot give a complete answer'\n\n"
+                    "CONTEXT:\n" + 
+                    "\n\n".join(context) +
+                    "\n\nFORMAT YOUR RESPONSE AS FOLLOWS:\n"
+                    "1. Answer: [Direct answer from context]\n"
+                )
+                
+                # Gọi LLM
+                messages = [
+                    {"role": "system", "content": system_content},
+                    {"role": "user", "content": user_message}
+                ]
+                
+                response = await llm_provider.get_completion(
+                    messages=messages,
+                    model=request.model,
+                    temperature=request.temperature
+                )
+                
+                return ChatResponse(
+                    model=response["model"],
+                    choices=response["choices"],
+                    usage=response["usage"]
+                )
         
     except Exception as e:
-        logger.error(f"Error processing request: {str(e)}")
+        logger.error(f"❌ LỖI: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")

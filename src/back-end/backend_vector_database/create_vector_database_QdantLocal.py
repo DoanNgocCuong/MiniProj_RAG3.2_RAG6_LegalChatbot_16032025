@@ -3,6 +3,7 @@
 Vector Database Creation Script for Legal RAG System (No LangChain)
 
 Script này tạo vector database từ dữ liệu pháp luật (Excel/text), lấy embedding bằng huggingface_hub và lưu trực tiếp vào Qdrant.
+Cấu trúc metadata được giữ giống hệt version dùng LangChain để đảm bảo tính nhất quán.
 """
 
 import os
@@ -30,10 +31,15 @@ def get_embedding(text):
     return client.feature_extraction(model=EMBEDDINGS_MODEL_NAME, text=text)
 
 def upsert_to_qdrant(vectors, payloads, collection_name, ids=None):
+    """
+    Upsert vectors vào Qdrant với cấu trúc metadata giống LangChain
+    """
     qdrant = QdrantClient(url="http://localhost:6333", api_key="my_super_secret_key")
+    
     # Kiểm tra và tạo collection nếu chưa có
     try:
         qdrant.get_collection(collection_name=collection_name)
+        print(f"Collection '{collection_name}' đã tồn tại.")
     except Exception:
         print(f"Collection '{collection_name}' chưa tồn tại. Đang tạo mới...")
         qdrant.create_collection(
@@ -47,6 +53,13 @@ def upsert_to_qdrant(vectors, payloads, collection_name, ids=None):
 
     if ids is None:
         ids = list(range(1, len(vectors)+1))
+    
+    # Log cấu trúc payload mẫu để kiểm tra
+    if payloads:
+        print("\nCấu trúc payload mẫu:")
+        print(f"Metadata: {payloads[0].get('metadata', {})}")
+        print(f"Page content: {payloads[0].get('page_content', '')[:100]}...")
+    
     qdrant.upsert(
         collection_name=collection_name,
         points=models.Batch(
@@ -58,33 +71,58 @@ def upsert_to_qdrant(vectors, payloads, collection_name, ids=None):
     print(f"Đã upsert {len(vectors)} vectors vào collection '{collection_name}'")
 
 def create_vector_database_from_excel(excel_file_path, collection_name=None):
+    """
+    Tạo vector database từ file Excel với cấu trúc metadata giống LangChain
+    """
     if collection_name is None:
         collection_name = COLLECTION_NAME
+    
     print(f"Loading data from {excel_file_path}...")
     data = pd.read_excel(excel_file_path)
+    
+    # Extract và preprocess data
     questions = data["Câu hỏi"].dropna().tolist()
     answers = data["Đáp án"].dropna().tolist()
+    
     if len(questions) != len(answers):
         print(f"Warning: Mismatch between number of questions ({len(questions)}) and answers ({len(answers)})")
         min_length = min(len(questions), len(answers))
         questions = questions[:min_length]
         answers = answers[:min_length]
+    
     print(f"Creating {len(answers)} document objects with metadata...")
+    
+    # Tạo payload với cấu trúc giống LangChain Document
     payloads = [
-        {"source": excel_file_path, "question": q, "page_content": a}
-        for q, a in zip(questions, answers)
+        # {"source": excel_file_path, "question": q, "page_content": a}
+        # for q, a in zip(questions, answers)
+        {
+            "metadata": {  # Cấu trúc metadata giống LangChain
+                "source": excel_file_path,
+                "question": question
+            },
+            "page_content": answer  # Tương đương với page_content trong LangChain Document
+        }
+        for question, answer in zip(questions, answers)
     ]
+    
     print(f"Lấy embedding cho {len(answers)} đáp án...")
     vectors = [get_embedding(a) for a in answers]
+    
     print(f"Upsert vào Qdrant collection: {collection_name}")
     upsert_to_qdrant(vectors, payloads, collection_name)
     print(f"Successfully added {len(answers)} documents to Qdrant")
 
 def create_vector_database_from_text_files(text_dir, collection_name=None):
+    """
+    Tạo vector database từ text files với cấu trúc metadata giống LangChain
+    """
     if collection_name is None:
         collection_name = COLLECTION_NAME + "_text"
+    
     print(f"Loading text files from {text_dir}...")
     documents = []
+    
     for root, _, files in os.walk(text_dir):
         for file in files:
             if file.endswith('.txt'):
@@ -92,27 +130,34 @@ def create_vector_database_from_text_files(text_dir, collection_name=None):
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
+                    
+                    # Split content into paragraphs
                     paragraphs = [p for p in content.split('\n\n') if p.strip()]
+                    
+                    # Tạo payload với cấu trúc giống LangChain Document
                     for paragraph in paragraphs:
                         if len(paragraph.strip()) > 50:
                             documents.append({
-                                "content": paragraph,
-                                "source": file_path
+                                "metadata": {  # Cấu trúc metadata giống LangChain
+                                    "source": file_path,
+                                    "_id": os.path.basename(file_path)
+                                },
+                                "page_content": paragraph  # Tương đương với page_content trong LangChain Document
                             })
+                    
                     print(f"Processed {file_path}: {len(paragraphs)} paragraphs")
                 except Exception as e:
                     print(f"Error processing {file_path}: {e}")
+    
     if not documents:
         print("No documents found to process!")
         return
+    
     print(f"Lấy embedding cho {len(documents)} đoạn văn...")
-    vectors = [get_embedding(doc["content"]) for doc in documents]
-    payloads = [
-        {"source": doc["source"], "page_content": doc["content"]}
-        for doc in documents
-    ]
+    vectors = [get_embedding(doc["page_content"]) for doc in documents]
+    
     print(f"Upsert vào Qdrant collection: {collection_name}")
-    upsert_to_qdrant(vectors, payloads, collection_name)
+    upsert_to_qdrant(vectors, documents, collection_name)
     print(f"Successfully added {len(documents)} documents to Qdrant collection: {collection_name}")
 
 def main():
@@ -122,6 +167,7 @@ def main():
     parser.add_argument('--text-dir', type=str, help='Directory containing text files to process')
     parser.add_argument('--collection', type=str, help='Name for the Qdrant collection')
     args = parser.parse_args()
+    
     if args.excel:
         create_vector_database_from_excel(args.excel, args.collection)
     elif args.text_dir:
