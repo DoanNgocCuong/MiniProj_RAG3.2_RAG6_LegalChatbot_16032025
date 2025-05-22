@@ -18,6 +18,7 @@ from huggingface_hub import InferenceClient
 from qdrant_client import QdrantClient, models
 from openai import OpenAI
 import logging
+import re
 
 # Configure logging
 logging.basicConfig(
@@ -32,6 +33,67 @@ logger = logging.getLogger("rag-backend")
 
 # Load environment variables
 load_dotenv()
+
+class LLMOutputProcessor:
+    """Class xử lý output từ LLM để làm sạch và định dạng lại kết quả
+    
+    Class này xử lý output từ LLM theo các bước sau:
+    1. Lấy text từ vị trí "User:" trở đi (bỏ qua System prompt, RULES và context)
+    2. Xóa prefix "User:" nhưng giữ nguyên nội dung
+    3. Thay thế "Assistant:" bằng "Assistant trả lời"
+    4. Làm sạch khoảng trắng và dòng trống thừa
+    
+    Ví dụ input:
+    ```
+    System: Bạn là trợ lý AI...
+    RULES: ...
+    Context: ...
+    User: Câu hỏi của người dùng
+    Assistant: Câu trả lời của AI
+    ```
+    
+    Output sau khi xử lý:
+    ```
+    Câu hỏi của người dùng
+    Assistant trả lời
+    Câu trả lời của AI
+    ```
+    """
+    
+    def __init__(self):
+        # Không cần patterns_to_remove vì đã lấy text từ User trở đi
+        pass
+        
+    def clean_output(self, response_text: str) -> str:
+        """Xử lý và làm sạch output từ LLM
+        
+        Args:
+            response_text (str): Text output từ LLM
+            
+        Returns:
+            str: Text đã được làm sạch theo format:
+                 - Bắt đầu từ nội dung sau "User:"
+                 - Không có prefix "User:"
+                 - "Assistant:" được thay bằng "Assistant trả lời"
+                 - Không có khoảng trắng và dòng trống thừa
+        """
+        try:
+            # 1. Lấy text từ "User:" trở đi (tự động bỏ qua System prompt, RULES và context)
+            user_start = response_text.find("User:")
+            if user_start != -1:
+                response_text = response_text[user_start:]
+            
+            # 2. Xử lý riêng cho User và Assistant
+            response_text = re.sub(r"User:", "", response_text)  # Xóa "User:" nhưng giữ nội dung
+            response_text = re.sub(r"Assistant:", "Assistant trả lời\n", response_text)  # Thay thế Assistant
+            
+            # 3. Làm sạch khoảng trắng và dòng trống
+            response_text = re.sub(r'\n\s*\n', '\n', response_text)
+            return response_text.strip()
+            
+        except Exception as e:
+            logger.error(f"Lỗi khi xử lý output LLM: {str(e)}")
+            return response_text  # Trả về text gốc nếu có lỗi
 
 # Configuration
 class Config:
@@ -442,8 +504,7 @@ async def chat_completions(request: ChatRequest):
             logger.info(f"Metadata: {exact_match.payload.get('metadata', {})}")
             
             response_content = (
-                f"{exact_match.payload.get('page_content', '')}\n\n"
-                f"(Nguồn: {exact_match.payload.get('metadata', {}).get('source', 'Không rõ')})"
+                f"{exact_match.payload.get('page_content', '')}\n"
             )
             
             return ChatResponse(
@@ -524,25 +585,31 @@ async def chat_completions(request: ChatRequest):
                 logger.info(f"Số lượng context đã thu thập: {len(context)}")
                 logger.info("Đang gọi LLM để tổng hợp câu trả lời...")
                 
-                # Tạo prompt cho LLM
+                # Tạo prompt cho LLM - format do Genspark AI đề xuất
                 system_content = (
-                    "You are a Vietnamese Maritime Law AI assistant. "
-                    "Answer based ONLY on the provided context:\n\n"
+                    "Bạn là trợ lý AI về Luật Biển Việt Nam. Hãy trả lời câu hỏi dựa trên thông tin được cung cấp. "
+                    "CÂU TRẢ LỜI CỦA BẠN CHỈ NÊN CHỨA NỘI DUNG THỰC TẾ, KHÔNG BAO GỒM BẤT CỨ CHỈ DẪN HOẶC CHỈ THỊ NÀO.\n\n"
                     "RULES:\n"
                     "- Use ONLY information from the context\n"
                     "- Keep answers concise and focused\n"
                     "- Cite legal references when available\n"
-                    "- If information is insufficient, state: 'Based on the provided context, I cannot give a complete answer'\n\n"
-                    "CONTEXT:\n" + 
-                    "\n\n".join(context) +
-                    "\n\nFORMAT YOUR RESPONSE AS FOLLOWS:\n"
-                    "1. Answer: [Direct answer from context]\n"
+                    "- If information is insufficient, state: 'Based on the provided context, I cannot give a complete answer'\n"
+                )
+
+                # Tạo user message với context
+                # thay context + câu hỏi thành câu hỏi + context đỡ phải sửa nhiều outputProcessing
+                user_content = (
+                    f"Câu hỏi: {user_message}\n"
+                    f"{'='*50}\n"                   
+                    f"Dưới đây là thông tin liên quan đến câu hỏi của bạn:\n"
+                    f"{' '.join(context)}\n"
+                    f"{'='*50}\n\n"
+                    f"Câu trả lời:"
                 )
                 
-                # Gọi LLM
                 messages = [
                     {"role": "system", "content": system_content},
-                    {"role": "user", "content": user_message}
+                    {"role": "user", "content": user_content}
                 ]
                 
                 response = await llm_provider.get_completion(
@@ -550,6 +617,13 @@ async def chat_completions(request: ChatRequest):
                     model=request.model,
                     temperature=request.temperature
                 )
+                
+                # Xử lý output từ LLM
+                processor = LLMOutputProcessor()
+                if response["choices"]:
+                    response["choices"][0]["message"]["content"] = processor.clean_output(
+                        response["choices"][0]["message"]["content"]
+                    )
                 
                 return ChatResponse(
                     model=response["model"],
